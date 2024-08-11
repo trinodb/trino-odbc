@@ -1,0 +1,100 @@
+name: Make a Release
+
+on:
+  push:
+    tags:
+      # We want to create releases whenever semver tags
+      # are pushed
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Run vcpkg
+        uses: lukka/run-vcpkg@v11
+        
+      - name: Run CMake and build x86
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x86
+          cmake --preset x86-release
+          cmake --build --preset x86-release
+
+      - name: Run CMake and build x64
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cmake --preset x64-release
+          cmake --build --preset x64-release
+
+      - name: Add dotnet tool cli
+        uses: actions/setup-dotnet@v4
+
+      - name: Add WiX dotnet package
+        run: |
+          dotnet tool install --global wix
+
+      - name: Add WiX UI extension
+        run: |
+         wix extension add -g WixToolset.UI.wixext
+
+      - name: Build x86 installer
+        shell: pwsh
+        run: |
+          .\install\build_x86_installer.ps1
+
+      - name: Build x64 installer
+        shell: pwsh
+        run: |
+          .\install\build_x64_installer.ps1
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers
+          if-no-files-found: error
+          overwrite: true
+          path: |
+            install/TrinoODBC_x86.msi
+            install/TrinoODBC_x64.msi
+            install/LICENSE.rtf
+            install/third_party_licenses.txt
+
+
+  # We need to build on Windows, but we can create the releases
+  # using Linux!
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: installers
+          path: ./installers
+
+      - name: Create Release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+          prerelease: false
+          automatic_release_tag: ${{ github.ref_name }}
+          title: Release ${{ github.ref_name }}
+          files: |
+            installers/TrinoODBC_x86.msi
+            installers/TrinoODBC_x64.msi
+            installers/LICENSE.rtf
+            installers/third_party_licenses.txt

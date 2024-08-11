@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui" >
+  <Package Name="TrinoODBC 64-bit" 
+           Language="1033" 
+           Version="0.0.1" 
+           Manufacturer="Trino" 
+           UpgradeCode="2cc2e3fc-3a87-493d-99d0-643c3dd1df59"
+           InstallerVersion="500" 
+           Compressed="yes" 
+           Scope="perMachine">
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="A newer version of the TrinoODBC 64-bit driver is already installed"/>
+    <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
+    <ui:WixUI Id="WixUI_Minimal" InstallDirectory="INSTALLFOLDER"/>
+
+    <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
+
+    <StandardDirectory Id="System64Folder">
+      <Directory Id="INSTALLFOLDER" Name="TrinoODBC">
+        <Component Id="DriverDLL" Guid="62c13cc1-c83b-4f06-b7ae-1cb75e6666ce">
+          <File Id="TrinoODBCx64" Name="TrinoODBC.dll" Source="..\\out\\build\\x64-release\\TrinoODBC.dll" KeyPath="yes" />
+          <File Id="libcurl_x64" Name="libcurl.dll" Source="..\\out\\build\\x64-release\\libcurl.dll" />
+          <File Id="zlib1_x64" Name="zlib1.dll" Source="..\\out\\build\\x64-release\\zlib1.dll" />
+          <File Id="libssl_x64" Name="libssl-3-x64.dll" Source="..\\out\\build\\x64-release\\libssl-3-x64.dll" />
+          <File Id="libcrypto_x64" Name="libcrypto-3-x64.dll" Source="..\\out\\build\\x64-release\\libcrypto-3-x64.dll" />
+          <File Id="third_party_licenses" Name="third_party_licenses.txt" Source=".\\third_party_licenses.txt" />
+          <RegistryKey Root="HKLM" Key="SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers">
+            <RegistryValue Name="TrinoODBC" Type="string" Value="Installed" />
+          </RegistryKey>
+          <RegistryKey Root="HKLM" Key="SOFTWARE\ODBC\ODBCINST.INI\TrinoODBC">
+            <RegistryValue Name="APILevel" Type="string" Value="0" />
+            <RegistryValue Name="Driver" Type="string" Value="[System64Folder]TrinoODBC\TrinoODBC.dll" />
+            <RegistryValue Name="Setup" Type="string" Value="[System64Folder]TrinoODBC\TrinoODBC.dll" />
+            <RegistryValue Name="DriverODBCVer" Type="string" Value="03.80" />
+            <RegistryValue Name="ConnectFunctions" Type="string" Value="YYN" />
+            <RegistryValue Name="FileUsage" Type="string" Value="0" />
+            <RegistryValue Name="SQLLevel" Type="string" Value="0" />
+          </RegistryKey>
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <Feature Id="TrinoODBC64Bit" Title="64-bit Trino ODBC Driver" Level="1">
+      <ComponentRef Id="DriverDLL" />
+    </Feature>
+
+  </Package>
+</Wix>

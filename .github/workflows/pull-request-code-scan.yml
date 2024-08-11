@@ -1,0 +1,98 @@
+name: Pull Request Code Scan
+
+on:
+  pull_request:
+    paths:
+      - '**/*.cpp'
+      - '**/*.hpp'
+      - '**/*.md'
+      - '**/*.yaml'
+      - '**/CMakeLists.txt'
+
+jobs:
+  pr-code-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Run the trailing whitespace check
+      - name: Check for trailing whitespace
+        run: |
+          # Find files with trailing whitespace
+          TRAILING_WHITESPACE_FILES=$(git grep -lE '\s+$' -- '*.cpp' '*.hpp' '*.md' '*.wxs' '*.yaml' CMakeLists.txt || true)
+
+          # Fail if any files have trailing whitespace
+          if [ -n "$TRAILING_WHITESPACE_FILES" ]; then
+            echo "The following files have trailing whitespace:"
+            echo "$TRAILING_WHITESPACE_FILES"
+            exit 1
+          fi
+
+      - name: Check for trailing newline
+        run: |
+         # Find all relevant files
+         FILES=$(git ls-files '*.cpp' '*.hpp' '*.md' '*.wxs' '*.yaml' CMakeLists.txt)
+
+         # Check each file for a single trailing newline
+         ISSUE_FOUND=0
+         for FILE in $FILES; do
+           # Bash comparisons are strange - you would think the last byte
+           # of the file would be a newline if the last byte of the
+           # file is a newline. You would be wrong! It seems to be an
+           # empty string instead. Regardless, I tested it and it seems
+           # like the test correctly flags files when checking against an
+           # empty string.
+           LAST_CHAR=$(tail --bytes=1 "${FILE}")
+           if [ "${LAST_CHAR}" != '' ] ; then
+             echo "$FILE does not end with a newline."
+             ISSUE_FOUND=1
+           # Unlike checking the individual character, checking word lines
+           # correctly handles the newlines and counts them.
+           elif [ "$(tail --bytes=2 "$FILE" | wc -l)" -ne 1 ]; then
+             echo "$FILE has multiple trailing newlines."
+             ISSUE_FOUND=1
+           fi
+         done
+
+         # Fail the job if any issues are found
+         if [ "$ISSUE_FOUND" -ne 0 ]; then
+           echo "See above - Some files do not adhere to the single trailing newline rule."
+           exit 1
+         fi
+
+      # Run the clang-format check
+      - name: Check clang-format
+        run: |
+          # Install clang-format
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+          # Find modified .cpp and .hpp files in the pull request that differ
+          # from what's in the main branch
+          MODIFIED_FILES=$(git diff --name-only origin/main...HEAD -- '*.cpp' '*.hpp')
+
+          if [ -z "$MODIFIED_FILES" ]; then
+            echo "No .cpp or .hpp files were modified."
+            exit 0
+          fi
+
+          # Count how many files clang-format modifies
+          CLANG_FORMAT_ISSUES=0
+          for FILE in $MODIFIED_FILES; do
+            # Run clang-format and check for differences in
+            # each file
+            clang-format -i $FILE
+            if ! git diff --quiet $FILE; then
+              echo "$FILE would be modified by clang-format."
+              CLANG_FORMAT_ISSUES=1
+            fi
+          done
+
+          # If any files were modified, fail the step.
+          if [ "$CLANG_FORMAT_ISSUES" -ne 0 ]; then
+            echo "See above - Some files would have been formatted by clang-format."
+            exit 1
+          fi

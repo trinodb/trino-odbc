@@ -1,0 +1,15 @@
+---
+IndentCaseLabels: true
+BasedOnStyle: LLVM
+AllowShortBlocksOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+BinPackArguments: false
+BinPackParameters: false
+InsertBraces: true
+IndentAccessModifiers: true
+PointerAlignment: Left
+AlignConsecutiveAssignments:
+  Enabled: true
+MaxEmptyLinesToKeep: 2
+InsertNewlineAtEOF: true

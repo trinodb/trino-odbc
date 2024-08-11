@@ -1,0 +1,12 @@
+{
+  "dependencies": [
+    {
+      "name": "curl",
+      "features": [
+        "openssl"
+      ]
+    },
+    "gtest",
+    "nlohmann-json"
+  ]
+}

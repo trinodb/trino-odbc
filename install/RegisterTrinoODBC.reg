@@ -1,0 +1,27 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers]
+"TrinoODBC"="Installed"
+
+;https://learn.microsoft.com/en-us/sql/odbc/reference/install/driver-specification-subkeys?view=sql-server-ver16
+[HKEY_LOCAL_MACHINE\SOFTWARE\ODBC\ODBCINST.INI\TrinoODBC]
+"APILevel"="0"
+"Driver"="C:\\Path\\To\\TrinoODBC.dll"
+"Setup"="C:\\Path\\To\\TrinoODBC.dll"
+"DriverODBCVer"="03.80"
+"ConnectFunctions" = "YYN"
+"FileUsage"="0"
+"SQLLevel"="0"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\ODBC\ODBCINST.INI\ODBC Drivers]
+"TrinoODBC"="Installed"
+
+;https://learn.microsoft.com/en-us/sql/odbc/reference/install/driver-specification-subkeys?view=sql-server-ver16
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\ODBC\ODBCINST.INI\TrinoODBC]
+"APILevel"="0"
+"Driver"="C:\\Path\\To\\TrinoODBC.dll"
+"Setup"="C:\\Path\\To\\TrinoODBC.dll"
+"DriverODBCVer"="03.80"
+"ConnectFunctions" = "YYN"
+"FileUsage"="0"
+"SQLLevel"="0"
