@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)]()
 [![Latest Release](https://img.shields.io/github/v/release/corteva/trino-odbc.svg)]()
-[![Build Status](https://img.shields.io/github/actions/workflow/status/corteva/trino-odbc/Make%20a%20Release.svg)]()
+[![Build Status](https://img.shields.io/github/actions/workflow/status/corteva/trino-odbc/make_release.yml.svg)]()
 [![Contributors](https://img.shields.io/github/contributors/corteva/trino-odbc.svg)]()
 [![Code Style](https://img.shields.io/badge/Code%20Style-Clang%20Format-blue.svg)]()
 
