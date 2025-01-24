@@ -251,39 +251,39 @@ or `[System64Folder]\TrinoODBC\third_party_licenses.txt` depending on whether yo
 a 32 or 64-bit driver.
 
 1. [libcurl](https://curl.se/libcurl/)
-  1. [MIT License](https://github.com/Araq/libcurl/blob/master/LICENSE.txt)
+    * [MIT License](https://github.com/Araq/libcurl/blob/master/LICENSE.txt)
 1. [nlohmann JSON](https://github.com/nlohmann/json)
-  1. [MIT License](https://github.com/nlohmann/json/blob/develop/LICENSE.MIT)
+    * [MIT License](https://github.com/nlohmann/json/blob/develop/LICENSE.MIT)
 1. [openssl](https://www.openssl.org/)
-  1. [Apache 2.0 License](https://github.com/openssl/openssl/blob/master/LICENSE.txt)
+    * [Apache 2.0 License](https://github.com/openssl/openssl/blob/master/LICENSE.txt)
 1. [zlib](https://zlib.net/) (a dependency of libcurl, not this driver)
-  1. [zlib License](https://www.zlib.net/zlib_license.html)
+    * [zlib License](https://www.zlib.net/zlib_license.html)
 
 ### Specification Dependencies
 
 1. [ODBC 3.8 Spec](https://learn.microsoft.com/en-us/sql/odbc/reference/what-s-new-in-odbc-3-8)
-  1. [MIT License](https://github.com/microsoft/ODBC-Specification/blob/master/license.txt)
-  1. Note: This is not distributed in source form with the TrinoODBC source
-     nor in binary form with the installer. This license is mentioned for the
-     purpose of transparency, not due to a legal requirement.
+    * [MIT License](https://github.com/microsoft/ODBC-Specification/blob/master/license.txt)
+    * Note: This is not distributed in source form with the TrinoODBC source
+      nor in binary form with the installer. This license is mentioned for the
+      purpose of transparency, not due to a legal requirement.
 
 ### Installer Dependencies
 
 1. [WiX](https://wixtoolset.org/)
-  1. [Microsoft Reciprocal License (MS-RL)](https://wixtoolset.org/docs/about/)
-  1. Note: This license does not apply to the TrinoODBC driver because it is
-     used soely to bundle/package the driver into an installer package. WiX
-     itself is used in unmodified form.
+    * [Microsoft Reciprocal License (MS-RL)](https://wixtoolset.org/docs/about/)
+    * Note: This license does not apply to the TrinoODBC driver because it is
+      used soely to bundle/package the driver into an installer package. WiX
+      itself is used in unmodified form.
 
 ### Testing Dependencies
 
 1. [googletest (aka gtest)](https://github.com/google/googletest)
-  1. [BSD 3-Clause "Revised" License](https://github.com/google/googletest/blob/main/LICENSE)
-  1. Note: This is not distributed in source form with the TrinoODBC source
-     nor in binary form with the installer. It is required to be provided
-     by vcpkg if you wish to compile the test suite for this repository.
-     This license is mentioned for the purpose of transparency, not due
-     to a legal requirement.
+    * [BSD 3-Clause "Revised" License](https://github.com/google/googletest/blob/main/LICENSE)
+    * Note: This is not distributed in source form with the TrinoODBC source
+      nor in binary form with the installer. It is required to be provided
+      by vcpkg if you wish to compile the test suite for this repository.
+      This license is mentioned for the purpose of transparency, not due
+      to a legal requirement.
 
 ## Development Resources
 
