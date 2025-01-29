@@ -106,7 +106,7 @@ std::string const ConnectionConfig::getStatementUrl() {
 
 CURL* ConnectionConfig::getCurl() {
   /*
-  Return a curl handle, reset it if neeeded, and it's ready to go.
+  Return a curl handle, reset it if needed, and it's ready to go.
   */
   if (this->curl == nullptr) {
     this->curl = curl_easy_init();

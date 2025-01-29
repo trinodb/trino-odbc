@@ -9,6 +9,9 @@ on:
       - '**/*.yaml'
       - '**/CMakeLists.txt'
 
+permissions:
+  contents: read
+
 jobs:
   pr-code-scan:
     runs-on: ubuntu-latest
@@ -17,6 +20,11 @@ jobs:
       # Checkout the code
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # Depth 0 gets all history for all branches. This
+          # enables the clang-format check to compare this PR
+          # against origin/main to see what's changed.
+          fetch-depth: 0
 
       # Run the trailing whitespace check
       - name: Check for trailing whitespace

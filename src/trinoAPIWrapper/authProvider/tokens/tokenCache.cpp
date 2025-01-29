@@ -45,8 +45,17 @@ bool TokenCacheEntry::isExpired() {
   long long currentTimestamp = getSecondsSinceEpoch();
   // We need to get the "exp" key from the parsed access token, but only
   // if it exists. That's harder to do that one would hope.
-  long long expiresAt = this->parsedAccessToken.value<long long>("exp", 0LL);
-  return currentTimestamp > (expiresAt - EXPIRY_GRACE_PERIOD_S);
+  long long expiresAt    = this->parsedAccessToken.value<long long>("exp", 0LL);
+  long long timeToExpiry = expiresAt - currentTimestamp;
+  if (getLogLevel() <= LL_TRACE) {
+    WriteLog(LL_TRACE,
+             "  Current timestamp: " + std::to_string(currentTimestamp));
+    WriteLog(LL_TRACE,
+             "  Token expires timestamp: " + std::to_string(expiresAt));
+    WriteLog(LL_TRACE,
+             "  Token expires in " + std::to_string(timeToExpiry) + " seconds");
+  }
+  return (timeToExpiry - EXPIRY_GRACE_PERIOD_S) < 0;
 }
 
 
