@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui" >
-  <Package Name="TrinoODBC 32-bit" 
-           Language="1033" 
-           Version="0.0.1" 
-           Manufacturer="Trino" 
+  <Package Name="TrinoODBC 32-bit"
+           Language="1033"
+           Version="0.0.1"
+           Manufacturer="Trino"
            UpgradeCode="d487a26c-ac90-487e-b332-e8ea34733229"
-           InstallerVersion="500" 
-           Compressed="yes" 
+           InstallerVersion="500"
+           Compressed="yes"
            Scope="perMachine">
     <MajorUpgrade AllowSameVersionUpgrades="yes"
                   DowngradeErrorMessage="A newer version of the TrinoODBC 32-bit driver is already installed"/>

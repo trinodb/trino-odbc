@@ -19,7 +19,7 @@ or Client Credential Auth.
 Other tools, environments, and authentication methods are not officially supported
 at this time. However, we welcome contributions that extend support to new
 frontiers. If you encounter issues outside these supported configurations and
-have an intention to contribute an improvement, we welcome your feature request. 
+have an intention to contribute an improvement, we welcome your feature request.
 
 If your use case falls outside the supported configurations and you cannot
 contribute an improvement at this time, we recommend evaluating commercial,

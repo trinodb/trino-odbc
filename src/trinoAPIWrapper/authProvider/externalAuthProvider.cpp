@@ -47,8 +47,13 @@ std::string refreshExternalAuth(ExternalAuthParams& params) {
                     EXTERNAL_AUTH_TRIGGER_ENDPOINT;
   // In order to make sure we reauthenticate, we need to NOT pass
   // our current auth credentials. This way we will be asked to
-  // authenticate again fresh.
-  params.requestHeaders->erase("Authorization");
+  // authenticate again fresh. One way to do that is just to clear out all
+  // custom headers from the request.
+  // In theory this could be modified to only remove the
+  // "Authorization" header, but that's significantly more work.
+  struct curl_slist* headers = nullptr;
+  curl_easy_setopt(params.curl, CURLOPT_HTTPHEADER, headers);
+  curl_slist_free_all(headers);
 
   // Clear out the buffers for curl callbacks so we
   // don't end up with data from the prior CURL request
@@ -60,6 +65,11 @@ std::string refreshExternalAuth(ExternalAuthParams& params) {
 
   // Now hit the Trino API, which will return a 401.
   CURLcode res = curl_easy_perform(params.curl);
+
+  // Get the HTTP status code so we can log it in case of an error.
+  long http_code = 0;
+  curl_easy_getinfo(params.curl, CURLINFO_RESPONSE_CODE, &http_code);
+
   WriteLog(LL_TRACE,
            "  Auth trigger CURLcode returned: " + std::to_string(res));
 
@@ -67,6 +77,9 @@ std::string refreshExternalAuth(ExternalAuthParams& params) {
     WriteLog(LL_ERROR,
              "  ERROR: Unauthenticated request did not return www-authenticate "
              "header");
+    WriteLog(LL_ERROR, "  URL was: " + URL);
+    WriteLog(LL_ERROR, "  CURLcode was: " + std::to_string(res));
+    WriteLog(LL_ERROR, "  HTTP Code was: " + std::to_string(http_code));
     return "";
   }
 

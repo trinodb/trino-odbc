@@ -29,10 +29,10 @@ find_package(nlohmann_json CONFIG REQUIRED)
 add_library(TrinoODBC SHARED
             "src/trinoAPIWrapper/authProvider/tokens/tokenCache.cpp"
             "src/trinoAPIWrapper/authProvider/tokens/tokenParser.cpp"
-            "src/trinoAPIWrapper/authProvider/clientCredAuthProvider.cpp" 
+            "src/trinoAPIWrapper/authProvider/clientCredAuthProvider.cpp"
             "src/trinoAPIWrapper/authProvider/externalAuthProvider.cpp"
             "src/trinoAPIWrapper/authProvider/noAuthProvider.cpp"
-            "src/trinoAPIWrapper/authProvider/tokenCacheAuthProviderBase.cpp" 
+            "src/trinoAPIWrapper/authProvider/tokenCacheAuthProviderBase.cpp"
             "src/trinoAPIWrapper/trinoQuery.cpp"
             "src/trinoAPIWrapper/connectionConfig.cpp"
             "src/trinoAPIWrapper/environmentConfig.cpp"
