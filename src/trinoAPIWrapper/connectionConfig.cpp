@@ -121,6 +121,8 @@ CURL* ConnectionConfig::getCurl() {
         this->curl, CURLOPT_HEADERDATA, &(this->responseHeaderData));
     // Set a timeout on all requests
     curl_easy_setopt(this->curl, CURLOPT_TIMEOUT_MS, 10000);
+    // Enable gzip and/or deflate on responses
+    curl_easy_setopt(this->curl, CURLOPT_ACCEPT_ENCODING, "gzip, deflate");
   }
 
 curlSetup:
