@@ -38,3 +38,12 @@ TEST(StringTrimTest, AllWhitespace) {
   trim(str);
   EXPECT_EQ(str, "");
 }
+
+TEST(StringTrimTest, HighBytesNoAssert) {
+  // Bytes > 127 are negative when stored in signed char.
+  // std::isspace with a negative int (other than EOF) is undefined
+  // behaviour and triggers a debug assertion on MSVC.
+  std::string str = " \xC0\xC1hello\xFF ";
+  trim(str);
+  EXPECT_EQ(str, "\xC0\xC1hello\xFF");
+}

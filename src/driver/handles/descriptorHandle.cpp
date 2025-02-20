@@ -52,6 +52,6 @@ void Descriptor::reset() {
   this->fields.resize(0);
 }
 
-SQLSMALLINT Descriptor::getColumnCount() {
+SQLSMALLINT Descriptor::getFieldCount() {
   return static_cast<SQLSMALLINT>(this->fields.size());
 }

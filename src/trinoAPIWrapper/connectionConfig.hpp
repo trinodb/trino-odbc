@@ -22,6 +22,7 @@ class ConnectionConfig {
     ApiAuthMethod authMethod;
     std::unique_ptr<AuthConfig> authConfigPtr;
     std::vector<std::function<void(ConnectionConfig*)>> onDisconnectCallbacks;
+    std::map<std::string, std::string> nonAuthHeaders;
 
     // CURL is managed within the connection config. This way
     // we can set up all the right headers and SSL options
@@ -42,6 +43,7 @@ class ConnectionConfig {
 
     ~ConnectionConfig();
     std::string const getHostname();
+    std::string const getServerName();
     std::string const getStatementUrl();
     unsigned short const getPort();
     ApiAuthMethod const getAuthMethod();
@@ -51,6 +53,9 @@ class ConnectionConfig {
     std::string getTrinoServerVersion();
     void registerDisconnectCallback(std::function<void(ConnectionConfig*)> f);
     void unregisterDisconnectCallback(std::function<void(ConnectionConfig*)> f);
+    void setRequestHeader(std::string key, std::string value);
+    std::string getRequestHeader(std::string key);
+    void clearRequestHeader(std::string key);
 
     // Making these public because they're frequently accessed and
     // manipulated external to the ConnectionConfig object

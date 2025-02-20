@@ -76,3 +76,21 @@ TEST_F(GetInfoTest, GetTrinoDBMSVersion) {
   int trinoServerVersion = std::atoi(secondPart.c_str());
   ASSERT_GE(trinoServerVersion, 100);
 }
+
+TEST_F(GetInfoTest, GetSQLServerName) {
+  // Put some nonsense into the char array as a test.
+  unsigned char buf[32]        = {'A'};
+  SQLSMALLINT bufferLen        = sizeof(buf);
+  SQLSMALLINT StrLen_or_IndPtr = 0;
+  SQLRETURN ret                = SQLGetInfo(
+      this->hDbc, SQL_SERVER_NAME, buf, bufferLen, &StrLen_or_IndPtr);
+
+  // The string is probably "localhost" and the length is 9 characters
+  // excluding the null termination character.
+  ASSERT_EQ(StrLen_or_IndPtr, 9);
+
+  // We can use the returned length to construct a proper string
+  // from the char array to do this comparison.
+  std::string serverName(buf, buf + StrLen_or_IndPtr);
+  ASSERT_EQ(serverName, std::string("localhost"));
+}

@@ -43,6 +43,15 @@ _Success_(return == SQL_SUCCESS) SQLRETURN SQL_API
       writeNullTermStringToPtr(InfoValue, "00.00.0001", StringLengthPtr);
       break;
     }
+    case SQL_SERVER_NAME: { // 13
+      // The server name seems to be accepted to be the host component of the
+      // authority section of a parsed URL. Some other databases have other
+      // aliases, but for Trino this should suffice.
+      const std::string serverName =
+          connection->connectionConfig->getServerName();
+      writeNullTermStringToPtr(InfoValue, serverName, StringLengthPtr);
+      break;
+    }
     case SQL_SEARCH_PATTERN_ESCAPE: { // 14
       // Trino supports escapes in search patterns:
       // x LIKE y ESCAPE '/'
@@ -657,6 +666,18 @@ _Success_(return == SQL_SUCCESS) SQLRETURN SQL_API
       // How much of the ODBC interface spec does this driver implement?
       // Just the core level for now.
       *((SQLUINTEGER*)InfoValue) = SQL_OIC_CORE;
+      break;
+    }
+    case SQL_PARAM_ARRAY_ROW_COUNTS: { // 153
+      // Does this driver implement parameter arrays as batches?
+      // No, it does not.
+      *((SQLUINTEGER*)InfoValue) = SQL_PARC_NO_BATCH;
+      break;
+    }
+    case SQL_PARAM_ARRAY_SELECTS: { // 154
+      // Does this driver implement parameter arrays selects in batches?
+      // No, it does not.
+      *((SQLUINTEGER*)InfoValue) = SQL_PAS_NO_BATCH;
       break;
     }
     case SQL_SQL92_PREDICATES: { // 160

@@ -13,11 +13,19 @@
 #include <stdexcept>
 
 #include "../util/delimKvpHelper.hpp"
+#include "../util/stringSplitAndTrim.hpp"
 #include "../util/stringTrim.hpp"
 #include "../util/writeLog.hpp"
 
 // How long should we poll between requests to Trino's nextUri?
 int API_POLL_INTERVAL_MS = 25;
+
+// Headers for controlling Trino's prepared statements, which is done
+// using HTTP request/response headers. Must be lower-case for
+// HTTP/2 compliance.
+const std::string PREPARE_HEADER         = "x-trino-prepared-statement";
+const std::string ADD_PREPARE_HEADER     = "x-trino-added-prepare";
+const std::string DEALLOC_PREPARE_HEADER = "x-trino-deallocated-prepare";
 
 TrinoQuery::TrinoQuery(ConnectionConfig* connectionConfig) {
   this->connectionConfig = connectionConfig;
@@ -183,8 +191,91 @@ const std::string& TrinoQuery::getQuery() const {
   return this->query;
 }
 
+void TrinoQuery::handlePreparedStatementHeaders() {
+  /*
+  Called during polling after every response is received from Trino.
+  This looks for any prepared statement headers in the response and
+  updates the connection's prepared statement header accordingly.
+  This allows the TrinoQuery to manage the lifecycle of prepared
+  statements.
+
+  Headers are documented here:
+    https://trino.io/docs/current/develop/client-protocol.html
+  */
+  std::string pairToAdd;
+  std::string keyToRemove;
+  if (this->connectionConfig->responseHeaderData.count(ADD_PREPARE_HEADER)) {
+    // Locate any new prepared statements.
+    pairToAdd = this->connectionConfig->responseHeaderData[ADD_PREPARE_HEADER];
+    WriteLog(LL_INFO, "  Prepared statement to add: " + pairToAdd);
+  }
+  if (this->connectionConfig->responseHeaderData.count(
+          DEALLOC_PREPARE_HEADER)) {
+    // Locate any deallocated prepared statements.
+    keyToRemove =
+        this->connectionConfig->responseHeaderData[DEALLOC_PREPARE_HEADER];
+    WriteLog(LL_INFO, "  Prepared statement key to remove: " + keyToRemove);
+  }
+  std::string newHeader =
+      this->connectionConfig->getRequestHeader(PREPARE_HEADER);
+
+  // DIAGNOSTIC: hex-dump the header so we can spot non-ASCII bytes
+  {
+    std::ostringstream hexDump;
+    hexDump << "  DIAG_HDR_HEX prepHdr bytes[" << newHeader.size() << "]: ";
+    for (unsigned char ch : newHeader) {
+      hexDump << std::format("{:02X} ", ch);
+    }
+    WriteLog(LL_INFO, hexDump.str());
+  }
+
+  // Add any new statements to the end of the header.
+  if (not pairToAdd.empty()) {
+    if (newHeader.empty()) {
+      newHeader = pairToAdd;
+    } else {
+      newHeader = newHeader + "," + pairToAdd;
+    }
+    // Save this new statement as the last prepared statement name.
+    // The name is whatever is before the equals sign in the key=value
+    // pair we're supposed to add.
+    auto tokenVector            = stringSplitAndTrim(pairToAdd, '=');
+    this->lastPreparedStatement = tokenVector[0];
+  }
+  // Remove any statements from the header.
+  if (not keyToRemove.empty()) {
+    auto kvps = parseKVPsFromCommaDelimStr(newHeader, false);
+    kvps.erase(keyToRemove);
+    newHeader = encodeMapToCommaDelimString(kvps);
+  }
+
+  WriteLog(LL_INFO, "  New prepared statement header: " + newHeader);
+  this->connectionConfig->setRequestHeader(PREPARE_HEADER, newHeader);
+}
+
 void TrinoQuery::post() {
+  /*
+  Post a query to Trino.
+
+  Clear all per-query result state before posting so that a handle can be
+  reused for a new query without an explicit SQL_CLOSE in between.
+  */
+  std::string savedQuery = this->query;
+  this->reset();
+  this->query = std::move(savedQuery);
+
+  for (std::function f : this->onPostCallbacks) {
+    f(this);
+  }
+
   CURL* curl = this->connectionConfig->getCurl();
+
+  // DIAGNOSTIC: log prepared statement header at POST time
+  std::string diagPrepHdr =
+      this->connectionConfig->getRequestHeader(PREPARE_HEADER);
+  WriteLog(LL_INFO,
+           "  DIAG_POST query=\"" + this->query + "\" prepHdr=\"" +
+               diagPrepHdr + "\"");
 
   std::string statementURL = this->connectionConfig->getStatementUrl();
   curl_easy_setopt(curl, CURLOPT_URL, statementURL.c_str());
@@ -197,6 +288,9 @@ void TrinoQuery::post() {
   }
 
   long httpStatusCode = this->connectionConfig->getLastHTTPStatusCode();
+  WriteLog(LL_INFO,
+           "  DIAG_POST_RESULT httpStatus=" + std::to_string(httpStatusCode) +
+               " curlOk=" + std::to_string(res == CURLE_OK));
 
   if (httpStatusCode == 200 and res == CURLE_OK) {
     updateSelfFromResponse();
@@ -217,6 +311,13 @@ void TrinoQuery::post() {
 }
 
 void TrinoQuery::poll(TrinoQueryPollMode mode) {
+  /*
+  Poll for a response from Trino.
+
+  In addition to polling for data responses, the same method is called
+  when waiting for prepared statements to be prepared. We need to handle any
+  prepared statement headers that may come along with the response.
+  */
   if (this->completed) {
     return;
   }
@@ -235,6 +336,7 @@ void TrinoQuery::poll(TrinoQueryPollMode mode) {
     res = curl_easy_perform(curl);
     UpdateStatus updateStatus;
     if (res == CURLE_OK) {
+      handlePreparedStatementHeaders();
       updateStatus = updateSelfFromResponse();
     }
 
@@ -249,6 +351,14 @@ void TrinoQuery::poll(TrinoQueryPollMode mode) {
       if (updateStatus.gotRowData) {
         break;
       }
+    }
+    if (mode == UntilQueryPrepared and this->completed) {
+      // When preparing queries, we don't really want to leave the entire
+      // trino query marked as completed, because the whole point of preparing
+      // a query is to use it later. Instead, we mark the query as not
+      // completed and return.
+      this->completed = false;
+      break;
     }
     //  If we learned something from the last request, reset the poll counter
     //  so we can try to read more data. If we didn't learn anything from
@@ -383,6 +493,11 @@ void TrinoQuery::sideloadResponse(json artificialResponse) {
   this is ready to be reused. The connection information
   can remain in place, as can the registered column change callback,
   but all the query data and metadata needs to be reset.
+
+  Note: the X-Trino-Prepared-Statement request header is NOT cleared
+  here. It is connection-level state shared across all statement handles
+  on the connection and must survive cursor reuse. It is only mutated by
+  handlePreparedStatementHeaders() and cleared on disconnect.
 */
 void TrinoQuery::reset() {
   WriteLog(LL_TRACE, "  TrinoQuery is resetting");
@@ -404,6 +519,10 @@ void TrinoQuery::reset() {
 void TrinoQuery::registerColumnDataChangeCallback(
     std::function<void(TrinoQuery*)> f) {
   this->onColumnDataCallbacks.push_back(f);
+}
+
+void TrinoQuery::registerPostCallback(std::function<void(TrinoQuery*)> f) {
+  this->onPostCallbacks.push_back(f);
 }
 
 const bool TrinoQuery::hasColumnData() const {
@@ -484,3 +603,7 @@ const bool TrinoQuery::hasError() const {
 const TrinoOdbcErrorHandler::OdbcError& TrinoQuery::getError() const {
   return odbcError.value();
 };
+
+const std::string TrinoQuery::getLastPreparedStatementName() {
+  return this->lastPreparedStatement;
+}

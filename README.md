@@ -63,7 +63,6 @@ Please see [our Contributing guide](./CONTRIBUTING.md) for more information.
 - Does not support binding and fetching multiple rows in a single call (SQLFetch with array size greater than 1)
 - Does not support non-sequential data fetching (SQLFetchScroll/SQLExtendedFetch)
 - Does not support iteratively discovering and enumerating connection attributes (SQLBrowseConnect)
-- Does not support prepared execution (SQLPrepare, SQLExecute)
 - All columns are reported as being nullable, regardless of whether they are
   actually nullable or not.
 

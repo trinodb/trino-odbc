@@ -72,7 +72,7 @@ class Descriptor {
     const DescriptorField& getFieldRef(SQLSMALLINT columnIndex);
     void resize(SQLSMALLINT newSize);
     void reset();
-    SQLSMALLINT getColumnCount();
+    SQLSMALLINT getFieldCount();
 
     // HEADER FIELDS
     // Header fields are fields that describe the descriptor as a whole.

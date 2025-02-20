@@ -33,6 +33,9 @@ curlHeaderCallback(char* buffer, size_t size, size_t nitems, void* userdata) {
     if (firstColon != std::string::npos) {
       std::string key   = headerData.substr(0, firstColon);
       std::string value = headerData.substr(firstColon + 1);
+      // Normalize header name to lowercase so lookups work regardless of
+      // whether the server uses HTTP/1.1 title-case or HTTP/2 lowercase.
+      std::transform(key.begin(), key.end(), key.begin(), ::tolower);
       // The values usually end in \r\n at a minimum, so we need
       // to trim that off.
       trim(value);
@@ -117,6 +120,19 @@ std::string const ConnectionConfig::getHostname() {
   return this->hostname;
 }
 
+/*
+Obtain the server name, which is essentially the "netloc"
+component of the URL as far as I can tell from the docuentation.
+*/
+std::string const ConnectionConfig::getServerName() {
+  size_t slashPos = this->hostname.find("//");
+  if (slashPos == std::string::npos) {
+    return this->hostname;
+  } else {
+    return this->hostname.substr(slashPos + 2);
+  }
+}
+
 unsigned short const ConnectionConfig::getPort() {
   return this->port;
 }
@@ -148,6 +164,9 @@ CURL* ConnectionConfig::getCurl() {
     curl_easy_setopt(this->curl, CURLOPT_TIMEOUT_MS, 10000);
     // Enable gzip and/or deflate on responses
     curl_easy_setopt(this->curl, CURLOPT_ACCEPT_ENCODING, "gzip, deflate");
+    // Force HTTP/2 so response header names are always lowercase, which
+    // keeps our case-normalized responseHeaderData map consistent.
+    curl_easy_setopt(this->curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
   }
 
 curlSetup:
@@ -166,15 +185,20 @@ curlSetup:
   // how it was used before.
   curl_easy_setopt(this->curl, CURLOPT_HTTPGET, true);
 
-  // Set up any required headers if needed.
+  // Set up any required headers if needed. We may need to handle
+  // both auth headers and non-auth headers.
+  struct curl_slist* headers = nullptr;
+  for (const auto& pair : this->nonAuthHeaders) {
+    std::string nextHeader = pair.first + ": " + pair.second;
+    headers                = curl_slist_append(headers, nextHeader.c_str());
+  }
   if (this->authConfigPtr->headers.size() > 0) {
-    struct curl_slist* headers = nullptr;
-    for (const auto pair : this->authConfigPtr->headers) {
+    for (const auto& pair : this->authConfigPtr->headers) {
       std::string nextHeader = pair.first + ": " + pair.second;
       headers                = curl_slist_append(headers, nextHeader.c_str());
     }
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
   }
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
   // Now that we have a fully configured CURL handle, check if we need to do
   // any required auth steps. We may need to use the configured handle to
@@ -236,4 +260,22 @@ void ConnectionConfig::registerDisconnectCallback(
 void ConnectionConfig::unregisterDisconnectCallback(
     std::function<void(ConnectionConfig*)> f) {
   removeCallbackFromVector(this->onDisconnectCallbacks, f);
+}
+
+void ConnectionConfig::setRequestHeader(std::string key, std::string value) {
+  // Specifically must use [] and not map.insert, since the latter will not
+  // overwrite existing keys.
+  this->nonAuthHeaders[key] = value;
+}
+
+std::string ConnectionConfig::getRequestHeader(std::string key) {
+  if (this->nonAuthHeaders.count(key) > 0) {
+    return this->nonAuthHeaders[key];
+  } else {
+    return "";
+  }
+}
+
+void ConnectionConfig::clearRequestHeader(std::string key) {
+  this->nonAuthHeaders.erase(key);
 }

@@ -1,6 +1,8 @@
 #include "delimKvpHelper.hpp"
+
 #include "stringTrim.hpp"
 #include <algorithm>
+#include <sstream>
 
 
 std::map<std::string, std::string>
@@ -63,7 +65,7 @@ std::string stripQuotes(std::string s, char quoteChar) {
 }
 
 std::map<std::string, std::string>
-parseKVPsFromDelimStr(std::string kvpStr,
+parseKVPsFromDelimStr(const std::string& kvpStr,
                       char delim,
                       bool lowercaseKeys,
                       bool trimKeysWhitespace,
@@ -122,7 +124,7 @@ parseKVPsFromDelimStr(std::string kvpStr,
 }
 
 std::map<std::string, std::string>
-parseKVPsFromSemicolonDelimStr(std::string kvpStr) {
+parseKVPsFromSemicolonDelimStr(const std::string& kvpStr) {
   char delimiter          = ';';
   bool lowercaseKeys      = true;
   bool trimKeysWhitespace = true;
@@ -132,11 +134,23 @@ parseKVPsFromSemicolonDelimStr(std::string kvpStr) {
 }
 
 std::map<std::string, std::string>
-parseKVPsFromCommaDelimStr(std::string kvpStr) {
+parseKVPsFromCommaDelimStr(const std::string& kvpStr, bool forceLowercaseKeys) {
   char delimiter          = ',';
-  bool lowercaseKeys      = true;
+  bool lowercaseKeys      = forceLowercaseKeys;
   bool trimKeysWhitespace = true;
   bool stripDoubleQuotes  = true;
   return parseKVPsFromDelimStr(
       kvpStr, delimiter, lowercaseKeys, trimKeysWhitespace, stripDoubleQuotes);
+}
+
+std::string
+encodeMapToCommaDelimString(const std::map<std::string, std::string>& map) {
+  std::ostringstream oss;
+  for (auto it = map.begin(); it != map.end(); it++) {
+    oss << it->first << "=" << it->second;
+    if (std::next(it) != map.end()) {
+      oss << ", ";
+    }
+  }
+  return oss.str();
 }

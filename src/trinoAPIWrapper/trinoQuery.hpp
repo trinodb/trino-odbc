@@ -21,6 +21,7 @@ enum TrinoQueryPollMode {
   UntilNewData,
   UntilColumnsLoaded,
   ToCompletion,
+  UntilQueryPrepared,
 };
 
 // Need to allow a few tests access to private variables
@@ -47,14 +48,17 @@ class TrinoQuery {
     std::vector<json> columnsJson;
     std::vector<json> dataJson;
     std::vector<ColumnDescription> columnDescriptions;
+    std::string lastPreparedStatement;
     bool error     = false;
     bool completed = false;
     std::vector<std::function<void(TrinoQuery*)>> onColumnDataCallbacks;
+    std::vector<std::function<void(TrinoQuery*)>> onPostCallbacks;
     int64_t rowOffsetPosition = -1;
     UpdateStatus updateSelfFromResponse();
     void onConnectionReset(ConnectionConfig* connectionConfig);
     std::string parseTrinoError(const json& errorJson);
     std::optional<TrinoOdbcErrorHandler::OdbcError> odbcError;
+    void handlePreparedStatementHeaders();
 
     friend class MemoryReclamationTest;
 
@@ -75,12 +79,13 @@ class TrinoQuery {
     void sideloadResponse(json artificialResponse);
     void reset();
     void registerColumnDataChangeCallback(std::function<void(TrinoQuery*)> f);
+    void registerPostCallback(std::function<void(TrinoQuery*)> f);
     const bool hasColumnData() const;
     void checkpointRowPosition(int64_t completedIndex);
     const json& getRowAtIndex(int64_t) const;
-
     void setQueryId(const std::string& id);
     const std::string& getQueryId() const;
     const bool hasError() const;
     const TrinoOdbcErrorHandler::OdbcError& getError() const;
+    const std::string getLastPreparedStatementName();
 };

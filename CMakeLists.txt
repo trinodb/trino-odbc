@@ -61,8 +61,10 @@ add_library(TrinoODBC SHARED
             "src/util/dateAndTimeUtils.cpp"
             "src/util/decimalHelper.cpp"
             "src/util/delimKvphelper.cpp"
+            "src/util/randomStr.cpp"
             "src/util/rowToBuffer.cpp"
             "src/util/stringFromChar.cpp"
+            "src/util/stringReplace.cpp"
             "src/util/stringSplitAndTrim.cpp"
             "src/util/stringTrim.cpp"
             "src/util/timer.cpp"
@@ -147,17 +149,22 @@ add_executable(TestDriver
     "test/performance/bindFetchPerformanceTest.cpp"
     "test/performance/fetchRowPerformanceTest.cpp"
     "test/performance/getDataFetchPerformanceTest.cpp"
+    "test/preparedStatements/testExecute.cpp"
+    "test/preparedStatements/testManualPrepare.cpp"
+    "test/preparedStatements/testPrepare.cpp"
     "test/types/fetchBindTest.cpp"
     "test/types/fetchGetDataTest.cpp"
     "test/unit/util/base64decoderTest.cpp"
     "test/unit/util/cryptUtilsTest.cpp"
     "test/unit/util/dateAndTimeUtilsTest.cpp"
+    "test/unit/util/randomStrTest.cpp"
     "test/unit/util/stringTrimTest.cpp"
+    "test/unit/util/stringReplaceTest.cpp"
     "test/unit/util/valuePtrHelperTest.cpp"
     "test/constants.cpp"
     "test/gtestTest.cpp"
 )
 # GMock is broken in VS environment. Use tests only
 # https://github.com/google/googletest/issues/2157
-target_link_libraries(TestDriver PRIVATE GTest::gtest GTest::gtest_main odbc32)
 target_link_libraries(TestDriver PRIVATE TrinoODBC)
+target_link_libraries(TestDriver PRIVATE GTest::gtest GTest::gtest_main odbc32)

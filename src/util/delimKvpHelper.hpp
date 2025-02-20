@@ -37,7 +37,7 @@ ex 2: hello=world;foo=bar
 This is the format used by connection strings passed into SQLDriverConnect.
 */
 std::map<std::string, std::string>
-parseKVPsFromSemicolonDelimStr(std::string kvpStr);
+parseKVPsFromSemicolonDelimStr(const std::string& kvpStr);
 
 
 /*
@@ -55,4 +55,21 @@ This is the format used by the www-authenticate header to return the retirect
 server and token server to use to authenticate to Trino
 */
 std::map<std::string, std::string>
-parseKVPsFromCommaDelimStr(std::string kvpStr);
+parseKVPsFromCommaDelimStr(const std::string& kvpStr,
+                           bool forceLowercaseKeys = true);
+
+
+/* Given a set of key-value pairs in a map, encode them into a comma delimited
+string structure.
+
+KVPs themselves are delimited by the equals sign.
+Between the KVPs are commas and a single whitespace character.
+There is nothing at the end of the kvp string itself.
+
+ex: abc=123, def=foo
+
+This is the format used by Trino's prepared statement header, and is also the
+reverse of parseKVPsFromCommaDelimStr.
+*/
+std::string
+encodeMapToCommaDelimString(const std::map<std::string, std::string>& map);

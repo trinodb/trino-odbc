@@ -82,6 +82,10 @@ Statement::Statement(ConnectionConfig* connectionConfig) {
   // Register a callback for times when column data has changed.
   this->trinoQuery->registerColumnDataChangeCallback(std::bind(
       &Statement::columnsChangedCallback, this, std::placeholders::_1));
+
+  // Register a callback to reset cursor position when a new query is posted.
+  this->trinoQuery->registerPostCallback(
+      [this](TrinoQuery*) { this->fetchedPosition = -1; });
 }
 
 Statement::~Statement() {
