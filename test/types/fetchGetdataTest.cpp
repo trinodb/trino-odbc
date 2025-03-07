@@ -121,6 +121,11 @@ TEST_F(FetchGetDataTest, SelectTinyInt) {
       "SELECT CAST(1 AS TINYINT)", (SQLCHAR)1, SQL_C_TINYINT);
 }
 
+TEST_F(FetchGetDataTest, SelectSignedTinyInt) {
+  executeAndValidateQuery(
+      "SELECT CAST(1 AS TINYINT)", (SQLCHAR)1, SQL_C_STINYINT);
+}
+
 TEST_F(FetchGetDataTest, SelectSmallInt) {
   executeAndValidateQuery(
       "SELECT CAST(1 AS SMALLINT)", (SQLSMALLINT)1, SQL_C_SHORT);
