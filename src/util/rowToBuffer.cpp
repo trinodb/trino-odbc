@@ -526,10 +526,11 @@ ColumnToBufferStatus columnToBuffer(SQLSMALLINT cDataType,
 
       return ColumnToBufferStatus(true, false);
     }
-    case SQL_C_BIT:       // -7
-    case SQL_C_TINYINT: { // -6
+    case SQL_C_BIT:        // -7
+    case SQL_C_TINYINT:    // -6
+    case SQL_C_STINYINT: { // -26
       copyFixedLenToBuffer<int8_t>(
-          rowData, columnNumber, buffer, strLen_or_IndPtr, "BIT/TINYINT");
+          rowData, columnNumber, buffer, strLen_or_IndPtr, "BIT/[S]TINYINT");
       return ColumnToBufferStatus(true, false);
     }
     case SQL_C_SHORT:    // 5
