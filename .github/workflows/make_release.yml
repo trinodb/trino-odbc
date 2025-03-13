@@ -50,7 +50,7 @@ jobs:
 
       - name: Add WiX UI extension
         run: |
-         wix extension add -g WixToolset.UI.wixext@${{ env.WIX_VERSION }}
+         wix extension add -g WixToolset.UI.wixext/${{ env.WIX_VERSION }}
 
       - name: Build x86 installer
         shell: pwsh
