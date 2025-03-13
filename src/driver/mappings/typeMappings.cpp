@@ -15,6 +15,7 @@ std::unordered_map<std::string, SQLSMALLINT> TRINO_RAW_TYPE_TO_ODBC_TYPE_CODE =
         std::make_pair("date", SQL_TYPE_DATE),
         std::make_pair("time", SQL_TYPE_TIME),
         std::make_pair("timestamp", SQL_TYPE_TIMESTAMP),
+        std::make_pair("timestamp with time zone", SQL_TYPE_TIMESTAMP),
 };
 
 std::unordered_map<std::string, SQLLEN> TRINO_RAW_TYPE_TO_ODBC_SIZE_BYTES = {
@@ -31,6 +32,7 @@ std::unordered_map<std::string, SQLLEN> TRINO_RAW_TYPE_TO_ODBC_SIZE_BYTES = {
     std::make_pair("date", 6),
     std::make_pair("time", 6),
     std::make_pair("timestamp", 16),
+    std::make_pair("timestamp with time zone", 16),
 };
 
 /*
@@ -54,6 +56,7 @@ std::unordered_map<std::string, bool> TRINO_RAW_TYPE_TO_UNSIGNED = {
     std::make_pair("date", true),
     std::make_pair("time", true),
     std::make_pair("timestamp", true),
+    std::make_pair("timestamp with time zone", true),
 };
 
 /*

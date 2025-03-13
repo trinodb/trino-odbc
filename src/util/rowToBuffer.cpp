@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include "dateAndTimeUtils.hpp"
 #include "decimalHelper.hpp"
 #include "writeLog.hpp"
 
@@ -83,25 +84,23 @@ SQLRETURN copyFixedLenToBuffer(const json& rowData,
 
 
 SQLRETURN copyDateToBuffer(SQLULEN columnNumber,
-                           SQLSMALLINT year,
-                           SQLUSMALLINT month,
-                           SQLUSMALLINT day,
+                           SQL_DATE_STRUCT& date,
                            void* buffer,
                            SQLLEN bufferLength,
                            SQLLEN* strLen_or_IndPtr) {
   try {
     if (getLogLevel() <= LL_TRACE) {
       WriteLog(LL_TRACE,
-               "  Detected bound date: " + std::to_string(year) + '-' +
-                   std::to_string(month) + '-' + std::to_string(day));
+               "  Detected bound date: " + std::to_string(date.year) + '-' +
+                   std::to_string(date.month) + '-' + std::to_string(date.day));
     }
     if (strLen_or_IndPtr) {
-      *strLen_or_IndPtr = 6; // Six bytes in a date struct.
+      *strLen_or_IndPtr = sizeof(SQL_DATE_STRUCT);
     }
     SQL_DATE_STRUCT* datePtr = reinterpret_cast<SQL_DATE_STRUCT*>(buffer);
-    datePtr->year            = year;
-    datePtr->month           = month;
-    datePtr->day             = day;
+    datePtr->year            = date.year;
+    datePtr->month           = date.month;
+    datePtr->day             = date.day;
     return SQL_SUCCESS;
 
   } catch (const std::exception& e) {
@@ -114,25 +113,24 @@ SQLRETURN copyDateToBuffer(SQLULEN columnNumber,
 
 
 SQLRETURN copyTimeToBuffer(SQLULEN columnNumber,
-                           SQLUSMALLINT hour,
-                           SQLUSMALLINT minute,
-                           SQLUSMALLINT second,
+                           SQL_TIME_STRUCT& time,
                            void* buffer,
                            SQLLEN bufferLength,
                            SQLLEN* strLen_or_IndPtr) {
   try {
     if (getLogLevel() <= LL_TRACE) {
       WriteLog(LL_TRACE,
-               "  Detected bound time: " + std::to_string(hour) + '-' +
-                   std::to_string(minute) + '-' + std::to_string(second));
+               "  Detected bound time: " + std::to_string(time.hour) + '-' +
+                   std::to_string(time.minute) + '-' +
+                   std::to_string(time.second));
     }
     if (strLen_or_IndPtr) {
-      *strLen_or_IndPtr = 6; // Six bytes in a time struct.
+      *strLen_or_IndPtr = sizeof(SQL_TIME_STRUCT);
     }
     SQL_TIME_STRUCT* timePtr = reinterpret_cast<SQL_TIME_STRUCT*>(buffer);
-    timePtr->hour            = hour;
-    timePtr->minute          = minute;
-    timePtr->second          = second;
+    timePtr->hour            = time.hour;
+    timePtr->minute          = time.minute;
+    timePtr->second          = time.second;
     return SQL_SUCCESS;
 
   } catch (const std::exception& e) {
@@ -143,93 +141,40 @@ SQLRETURN copyTimeToBuffer(SQLULEN columnNumber,
   }
 }
 
-SQLUINTEGER timestampFractionConverter(const char* timestampChars) {
-  /*
-  The fraction part of a timestamp can be anything from an empty
-  string to 12 digits of text:
-
-  ex1: 2000-01-01 00:00:00
-  ex2: 2000-01-01 00:00:00.123456789999
-
-  This function needs to always return the fraction component in the form
-  of billionths of a second, no matter how many digits are provided.
-
-  Ref:
-  https://learn.microsoft.com/en-us/sql/odbc/reference/appendixes/c-data-types
-  */
-  SQLUINTEGER fraction      = 0;
-  const char* fractionStart = timestampChars + 19;
-
-  // If there is no decimal point, we can assume the default
-  // fraction value of zero. Otherwise we need to parse
-  // the fraction value.
-  if (*fractionStart != '.') {
-    return fraction;
-  }
-
-  // Find the end of the fraction
-  const char* fractionEnd = fractionStart + 1;
-  while (std::isdigit(*fractionEnd)) {
-    fractionEnd++;
-  }
-
-  // Once we know the start and end, we can pull the fraction
-  // characters out into a c++ string and count them.
-  std::string fractionStr(fractionStart + 1, fractionEnd);
-  size_t fractionDigits = fractionStr.length();
-
-  // Last we need to parse the fraction as an integer
-  // and perform the scaling operation to convert it to
-  // billionths of a second.
-  SQLUINTEGER fractionRawInt = std::strtoul(fractionStr.c_str(), nullptr, 10);
-
-  if (fractionDigits > 0 && fractionDigits <= 9) {
-    // Handle multiplying the number to get to billionths of a second.
-    fraction = fractionRawInt *
-               static_cast<SQLUINTEGER>(std::pow(10, 9 - fractionDigits));
-  } else if (fractionDigits > 9) {
-    // Just truncate if there are more than 9 digits. Rounding would be
-    // better, but that would require a 64-bit integer
-    fraction = std::strtoul(fractionStr.substr(0, 9).c_str(), nullptr, 10);
-  }
-
-  return fraction;
-}
 
 SQLRETURN copyTimestampToBuffer(SQLULEN columnNumber,
-                                SQLSMALLINT year,
-                                SQLUSMALLINT month,
-                                SQLUSMALLINT day,
-                                SQLUSMALLINT hour,
-                                SQLUSMALLINT minute,
-                                SQLUSMALLINT second,
-                                SQLUINTEGER fraction,
+                                ParsedTimestamp& ts,
                                 void* buffer,
                                 SQLLEN bufferLength,
                                 SQLLEN* strLen_or_IndPtr) {
   try {
     if (getLogLevel() <= LL_TRACE) {
       WriteLog(LL_TRACE,
-               "  Detected bound time: " + std::to_string(hour) + '-' +
-                   std::to_string(minute) + '-' + std::to_string(second));
+               "  Detected bound timestamp: " + std::to_string(ts.date.year) +
+                   "-" + std::to_string(ts.date.month) + "-" +
+                   std::to_string(ts.date.day) + "T" +
+                   std::to_string(ts.time.hour) + ":" +
+                   std::to_string(ts.time.minute) + ":" +
+                   std::to_string(ts.time.second) + "." +
+                   std::to_string(ts.fraction));
     }
     if (strLen_or_IndPtr) {
-      *strLen_or_IndPtr = 6; // Six bytes in a time struct.
+      *strLen_or_IndPtr = sizeof(SQL_TIMESTAMP_STRUCT);
     }
     SQL_TIMESTAMP_STRUCT* timestampPtr =
         reinterpret_cast<SQL_TIMESTAMP_STRUCT*>(buffer);
-    timestampPtr->year     = year;
-    timestampPtr->month    = month;
-    timestampPtr->day      = day;
-    timestampPtr->hour     = hour;
-    timestampPtr->minute   = minute;
-    timestampPtr->second   = second;
-    timestampPtr->fraction = fraction;
+    timestampPtr->year     = ts.date.year;
+    timestampPtr->month    = ts.date.month;
+    timestampPtr->day      = ts.date.day;
+    timestampPtr->hour     = ts.time.hour;
+    timestampPtr->minute   = ts.time.minute;
+    timestampPtr->second   = ts.time.second;
+    timestampPtr->fraction = ts.fraction;
     return SQL_SUCCESS;
 
   } catch (const std::exception& e) {
     WriteLog(LL_ERROR,
-             "  ERROR: extracting time value for column index: " +
+             "  ERROR: extracting timestamp value for column index: " +
                  std::to_string(columnNumber) + " - " + e.what());
     return SQL_ERROR;
   }
@@ -390,7 +335,6 @@ ColumnToBufferStatus columnToBuffer(SQLSMALLINT cDataType,
       // Trino decimals return as strings, '123.456'
       std::string value      = rowData[columnNumber - 1].get<std::string>();
       const char* valueChars = value.c_str();
-
       copyDecimalToBuffer(columnNumber,
                           valueChars,
                           buffer,
@@ -405,125 +349,32 @@ ColumnToBufferStatus columnToBuffer(SQLSMALLINT cDataType,
       // Trino guids are strings, "00000000-0000-0000-0000-000000000000"
       std::string value      = rowData[columnNumber - 1].get<std::string>();
       const char* valueChars = value.c_str();
-
       copyGuidToBuffer(
           columnNumber, valueChars, buffer, bufferLength, strLen_or_IndPtr);
-
       return ColumnToBufferStatus(true, false);
     }
     case SQL_C_DATE:        // 9
     case SQL_C_TYPE_DATE: { // 91
-      // Trino dates are strings, "YYYY-MM-DD".
-      //
-      // ODBC dates are a struct of three numbers
-      // SQLSMALLINT year;
-      // SQLUSMALLINT month;
-      // SQLUSMALLINT day;
-      //
-      // It makes sense to try to optimize a bit here because this
-      // will get called many many times for a table containing many dates.
-
-      std::string value      = rowData[columnNumber - 1].get<std::string>();
-      const char* valueChars = value.c_str();
-
-      SQLSMALLINT year = static_cast<SQLSMALLINT>(
-          std::strtol(valueChars + 0, nullptr, 10)); // YYYY
-      SQLUSMALLINT month = static_cast<SQLUSMALLINT>(
-          std::strtol(valueChars + 5, nullptr, 10)); // MM
-      SQLUSMALLINT day = static_cast<SQLUSMALLINT>(
-          std::strtol(valueChars + 8, nullptr, 10)); // DD
-      copyDateToBuffer(columnNumber,
-                       year,
-                       month,
-                       day,
-                       buffer,
-                       bufferLength,
-                       strLen_or_IndPtr);
+      std::string value    = rowData[columnNumber - 1].get<std::string>();
+      SQL_DATE_STRUCT date = parseDate(value);
+      copyDateToBuffer(
+          columnNumber, date, buffer, bufferLength, strLen_or_IndPtr);
       return ColumnToBufferStatus(true, false);
     }
     case SQL_C_TIME:        // 10
     case SQL_C_TYPE_TIME: { // 92
-      // Trino times are strings, "HH:MM:SS.FFF" where
-      // FFF is fractions of a second.
-      //
-      // ODBC times are a struct of three numbers
-      // SQLUSMALLINT hour;
-      // SQLUSMALLINT minute;
-      // SQLUSMALLINT second;
-      //
-      // It makes sense to try to optimize a bit here because this
-      // will get called many many times for a table containing many dates.
-      // The basic SQL_C_TIME type does not support fractions of a second,
-      // so that information ends up being discarded.
-
-      std::string value      = rowData[columnNumber - 1].get<std::string>();
-      const char* valueChars = value.c_str();
-
-      SQLUSMALLINT hour = static_cast<SQLUSMALLINT>(
-          std::strtol(valueChars + 0, nullptr, 10)); // HH
-      SQLUSMALLINT minute = static_cast<SQLUSMALLINT>(
-          std::strtol(valueChars + 3, nullptr, 10)); // MM
-      SQLUSMALLINT second = static_cast<SQLUSMALLINT>(
-          std::strtol(valueChars + 6, nullptr, 10)); // SS
-
-      copyTimeToBuffer(columnNumber,
-                       hour,
-                       minute,
-                       second,
-                       buffer,
-                       bufferLength,
-                       strLen_or_IndPtr);
-
+      std::string value    = rowData[columnNumber - 1].get<std::string>();
+      SQL_TIME_STRUCT time = parseTime(value);
+      copyTimeToBuffer(
+          columnNumber, time, buffer, bufferLength, strLen_or_IndPtr);
       return ColumnToBufferStatus(true, false);
     }
     case SQL_C_TIMESTAMP:        // 11
     case SQL_C_TYPE_TIMESTAMP: { // 93
-      // Trino timestamps are strings, "YYYY-MM-DD HH:MM:SS.FFF[...]"
-      //
-      // ODBC times are a struct of several numbers
-
-      // SQLSMALLINT  year;
-      // SQLUSMALLINT month;
-      // SQLUSMALLINT day;
-      // SQLUSMALLINT hour;
-      // SQLUSMALLINT minute;
-      // SQLUSMALLINT second;
-      // SQLUINTEGER fraction;
-      //
-      // It makes sense to try to optimize a bit here because this
-      // will get called many many times for a table containing many dates.
-      // The basic SQL_C_TIME type does not support fractions of a second,
-      // so that information ends up being discarded.
-
-      std::string value      = rowData[columnNumber - 1].get<std::string>();
-      const char* valueChars = value.c_str();
-
-      SQLSMALLINT year = static_cast<SQLSMALLINT>(
-          std::strtol(valueChars + 0, nullptr, 10)); // YYYY
-      SQLUSMALLINT month = static_cast<SQLUSMALLINT>(
-          std::strtol(valueChars + 5, nullptr, 10)); // MM
-      SQLUSMALLINT day = static_cast<SQLUSMALLINT>(
-          std::strtol(valueChars + 8, nullptr, 10)); // DD
-      SQLUSMALLINT hour = static_cast<SQLUSMALLINT>(
-          std::strtol(valueChars + 11, nullptr, 10)); // HH
-      SQLUSMALLINT minute = static_cast<SQLUSMALLINT>(
-          std::strtol(valueChars + 14, nullptr, 10)); // MM
-      SQLUSMALLINT second = static_cast<SQLUSMALLINT>(
-          std::strtol(valueChars + 17, nullptr, 10));                // SS
-      SQLUINTEGER fraction = timestampFractionConverter(valueChars); // FFF[...]
-
-      copyTimestampToBuffer(columnNumber,
-                            year,
-                            month,
-                            day,
-                            hour,
-                            minute,
-                            second,
-                            fraction,
-                            buffer,
-                            bufferLength,
-                            strLen_or_IndPtr);
-
+      std::string value         = rowData[columnNumber - 1].get<std::string>();
+      ParsedTimestamp timestamp = parseTimestamp(value);
+      copyTimestampToBuffer(
+          columnNumber, timestamp, buffer, bufferLength, strLen_or_IndPtr);
       return ColumnToBufferStatus(true, false);
     }
     case SQL_C_BIT:        // -7

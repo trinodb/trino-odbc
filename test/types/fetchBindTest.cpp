@@ -341,3 +341,30 @@ TEST_F(FetchBindTest, SelectTimestamp) {
   ASSERT_EQ(res.second, expectedTimestamp.second);
   ASSERT_EQ(res.fraction, expectedTimestamp.fraction);
 }
+
+TEST_F(FetchBindTest, SelectTimestampWithTimeZone) {
+  // The date selected will roll over to a new day after
+  // being adjusted to UTC. This is intentional.
+  SQLSMALLINT year     = 2025;
+  SQLUSMALLINT month   = 3;
+  SQLUSMALLINT day     = 11;
+  SQLUSMALLINT hour    = 1;
+  SQLUSMALLINT minute  = 21;
+  SQLUSMALLINT second  = 22;
+  SQLUINTEGER fraction = 123000000; // Billionths of a second.
+
+  SQL_TIMESTAMP_STRUCT expectedTimestamp = {
+      year, month, day, hour, minute, second, fraction};
+
+  SQL_TIMESTAMP_STRUCT res = executeAndValidateQuery<SQL_TIMESTAMP_STRUCT>(
+      "SELECT timestamp '2025-03-10 20:21:22.123 America/Chicago'",
+      SQL_C_TIMESTAMP);
+
+  ASSERT_EQ(res.year, expectedTimestamp.year);
+  ASSERT_EQ(res.month, expectedTimestamp.month);
+  ASSERT_EQ(res.day, expectedTimestamp.day);
+  ASSERT_EQ(res.hour, expectedTimestamp.hour);
+  ASSERT_EQ(res.minute, expectedTimestamp.minute);
+  ASSERT_EQ(res.second, expectedTimestamp.second);
+  ASSERT_EQ(res.fraction, expectedTimestamp.fraction);
+}
