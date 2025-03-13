@@ -14,6 +14,9 @@ jobs:
   build:
     runs-on: windows-2022
 
+    env:
+      WIX_VERSION: "5.0.2"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,11 +46,11 @@ jobs:
 
       - name: Add WiX dotnet package
         run: |
-          dotnet tool install --global wix
+          dotnet tool install --global wix --version ${{ env.WIX_VERSION }}
 
       - name: Add WiX UI extension
         run: |
-         wix extension add -g WixToolset.UI.wixext
+         wix extension add -g WixToolset.UI.wixext@${{ env.WIX_VERSION }}
 
       - name: Build x86 installer
         shell: pwsh

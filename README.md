@@ -207,9 +207,9 @@ this driver.
    .NET SDK. Instructions for Visual Studio:
     1. https://stackoverflow.com/questions/69045231/nuget-package-sources-missing
 1. Begin by installing the WiX tool on your system using the .NET SDK.
-    1. Run `dotnet tool install --global wix`
+    1. Run `dotnet tool install --global wix --version 5.0.2`
 1. Add the WiX UI extension.
-    1. `wix extension add -g WixToolset.UI.wixext`
+    1. `wix extension add -g WixToolset.UI.wixext@5.0.2`
 1. Build the installer
     1. `cd install`
     1. `./build_x64_installer.ps1` (for a 64-bit installer)
