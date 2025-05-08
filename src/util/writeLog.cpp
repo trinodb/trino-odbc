@@ -1,4 +1,5 @@
 #include "writeLog.hpp"
+#include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
@@ -46,6 +47,37 @@ LogLevel getLogLevel() {
   return CURRENT_LOG_LEVEL;
 }
 
+tm getTime() {
+  // Get the current time
+  auto now       = std::chrono::system_clock::now();
+  auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+  // Convert time to local time, but be sure to use the "safe"
+  // version of the function: localtime_s
+  std::tm buf;
+  localtime_s(&buf, &in_time_t);
+
+  return buf;
+}
+
+std::string getLogPrefix() {
+  tm buf = getTime();
+
+  // Format the resulting time for output.
+  std::ostringstream timeStream;
+  timeStream << std::put_time(&buf, "%Y-%m-%dT%H:%M:%S") << " - ";
+  return timeStream.str();
+}
+
+std::wstring wgetLogPrefix() {
+  tm buf = getTime();
+
+  // Format the resulting time for output in a wide string.
+  std::wostringstream timeStream;
+  timeStream << std::put_time(&buf, L"%Y-%m-%dT%H:%M:%S") << " - ";
+  return timeStream.str();
+}
+
 void WriteLog(LogLevel level, std::ostringstream& oss) {
   if (level < CURRENT_LOG_LEVEL) {
     return;
@@ -75,7 +107,7 @@ void WriteLog(LogLevel level, const std::string& s) {
     return;
   }
   std::ostringstream oss;
-  oss << s;
+  oss << getLogPrefix() << s;
   WriteLog(level, oss);
 }
 
@@ -84,7 +116,7 @@ void WriteLog(LogLevel level, const std::wstring& s) {
     return;
   }
   std::wostringstream oss;
-  oss << s;
+  oss << wgetLogPrefix() << s;
   WriteLog(level, oss);
 }
 
@@ -93,7 +125,7 @@ void WriteLog(LogLevel level, const char* message) {
     return;
   }
   std::ostringstream oss;
-  oss << message;
+  oss << getLogPrefix() << message;
   WriteLog(level, oss);
 }
 
@@ -116,7 +148,7 @@ void WriteLog(LogLevel level, unsigned char* message, int length) {
     logMessage = std::string(reinterpret_cast<char*>(message));
   }
   std::ostringstream oss;
-  oss << logMessage;
+  oss << getLogPrefix() << logMessage;
   WriteLog(level, oss);
 }
 
@@ -125,6 +157,7 @@ void WriteLog(LogLevel level, const std::map<std::string, std::string>& m) {
     return;
   }
   std::ostringstream oss;
+  oss << getLogPrefix();
   for (const auto& pair : m) {
     oss << pair.first << ": " << pair.second << "; ";
   }
@@ -140,7 +173,7 @@ void WriteLog(LogLevel level, void* p) {
     return;
   }
   std::ostringstream oss;
-  oss << p;
+  oss << getLogPrefix() << p;
   WriteLog(level, oss);
 }
 
@@ -149,7 +182,7 @@ void WriteLog(LogLevel level, unsigned int i) {
     return;
   }
   std::ostringstream oss;
-  oss << i;
+  oss << getLogPrefix() << i;
   WriteLog(level, oss);
 }
 
@@ -158,7 +191,7 @@ void WriteLog(LogLevel level, int64_t i) {
     return;
   }
   std::ostringstream oss;
-  oss << i;
+  oss << getLogPrefix() << i;
   WriteLog(level, oss);
 }
 
@@ -167,6 +200,6 @@ void WriteLog(LogLevel level, uint64_t i) {
     return;
   }
   std::ostringstream oss;
-  oss << i;
+  oss << getLogPrefix() << i;
   WriteLog(level, oss);
 }
