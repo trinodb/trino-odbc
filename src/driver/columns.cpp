@@ -13,6 +13,19 @@ std::string constructColumnQuery(std::string catalog,
   /*
   We need to implement a result set that matches this exact spec.
   https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlcolumns-function
+
+  There are a few key differences from the JDBC defaults:
+  * Trino type 2014 is timestamp with time zone in system.jdbc.columns. This is
+    non-standard.
+      * We substitute data_type 93 - SQL_TYPE_TIMESTAMP
+      * We substitute type_name 'timestamp'
+      * We substitute column_size 16 - sizeof(SQL_TIMESTAMP_STRUCT)
+  * ODBC expects decimal_digits to be 0 for integral numeric types, never NULL.
+      * Reference:
+  https://learn.microsoft.com/en-us/sql/odbc/reference/appendixes/decimal-digits
+      * Problem: system.jdbc.columns reports integral types with NULL decimal
+        digits
+      * Solution: explicitly set integral types to have 0 decimal digits
   */
   // clang-format off
   std::string query = std::string(R"SQL(
@@ -21,11 +34,23 @@ std::string constructColumnQuery(std::string catalog,
         table_schem,
         table_name,
         column_name,
-        data_type,
-        type_name,
-        column_size,
+        CASE data_type
+            WHEN 2014 THEN 93
+            ELSE data_type
+        END AS data_type,
+        CASE data_type
+            WHEN 2014 THEN 'timestamp'
+            ELSE type_name
+        END AS type_name,
+        CASE data_type
+            WHEN 2014 THEN 16
+            ELSE column_size
+        END AS column_size,
         buffer_length,
-        decimal_digits,
+        CASE
+            WHEN type_name IN ('bigint', 'integer', 'smallint', 'tinyint') THEN 0
+            ELSE decimal_digits
+        END AS decimal_digits,
         num_prec_radix,
         nullable,
         remarks,

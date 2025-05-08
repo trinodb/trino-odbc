@@ -136,6 +136,8 @@ add_executable(TestDriver
     "test/connections/connectTest.cpp"
     "test/fixtures/sqlDriverConnectFixture.cpp"
     "test/functions/testCancel.cpp"
+    "test/functions/testColumns.cpp"
+    "test/functions/testDescribeCol.cpp"
     "test/functions/testGetConnectAttr.cpp"
     "test/functions/testGetInfo.cpp"
     "test/functions/testTables.cpp"
