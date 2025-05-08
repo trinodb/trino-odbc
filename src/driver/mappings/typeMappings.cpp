@@ -27,12 +27,12 @@ std::unordered_map<std::string, SQLLEN> TRINO_RAW_TYPE_TO_ODBC_SIZE_BYTES = {
     std::make_pair("real", 4),
     std::make_pair("boolean", 1),
     std::make_pair("varchar", SQL_NO_TOTAL),
-    std::make_pair("uuid", 16),
+    std::make_pair("uuid", sizeof(SQLGUID)),
     std::make_pair("decimal", SQL_NO_TOTAL),
-    std::make_pair("date", 6),
-    std::make_pair("time", 6),
-    std::make_pair("timestamp", 16),
-    std::make_pair("timestamp with time zone", 16),
+    std::make_pair("date", sizeof(SQL_DATE_STRUCT)),
+    std::make_pair("time", sizeof(SQL_TIME_STRUCT)),
+    std::make_pair("timestamp", sizeof(SQL_TIMESTAMP_STRUCT)),
+    std::make_pair("timestamp with time zone", sizeof(SQL_TIMESTAMP_STRUCT)),
 };
 
 /*

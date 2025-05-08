@@ -63,7 +63,7 @@ SQLRETURN SQL_API SQLDriverConnect(SQLHDBC ConnectionHandle,
              "  An explicit DSN was not provided to SQLDriverConnect");
   }
 
-  WriteLog(LL_TRACE, "  Construting driver config");
+  WriteLog(LL_TRACE, "  Constructing driver config");
   DriverConfig config = driverConfigFromKVPs(kvps);
 
   // It's kind of unfortunate that we can't set the log level of the driver
