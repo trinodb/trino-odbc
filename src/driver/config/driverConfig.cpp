@@ -56,6 +56,7 @@ std::map<std::string, std::string> DRIVER_CONFIG_DEFAULT_VALUES = {
     std::make_pair("clientId", ""),
     std::make_pair("clientSecret", ""),
     std::make_pair("oidcScope", ""),
+    std::make_pair("secretEncryptionLevel", "user"),
 };
 
 // DSN

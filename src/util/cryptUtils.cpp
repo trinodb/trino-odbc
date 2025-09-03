@@ -65,14 +65,13 @@ std::vector<BYTE> fromBase64(const std::string& data) {
   return decodedData;
 }
 
-std::string encryptString(const std::string& text) {
-  /* Encrypt a string using the user's login data.
+std::string encryptString(const std::string& text, DWORD flags) {
+  /*
    * Based on the API documentation for DPAPI CryptProtectData function
    * https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptprotectdata
    * Adds base64 encoding to the output to avoid returning non printing
    * characters or other tricky stuff in the response.
    */
-
   if (text.empty()) {
     return "";
   }
@@ -85,7 +84,7 @@ std::string encryptString(const std::string& text) {
   dataIn.pbData = pbDataInput;
   dataIn.cbData = cbDataInput;
 
-  if (!CryptProtectData(&dataIn, NULL, NULL, NULL, NULL, 0, &dataOut)) {
+  if (!CryptProtectData(&dataIn, NULL, NULL, NULL, NULL, flags, &dataOut)) {
     throw std::runtime_error("Encryption Failed");
   }
   std::vector<BYTE> encryptedData(dataOut.pbData,
@@ -95,8 +94,8 @@ std::string encryptString(const std::string& text) {
   return toBase64(encryptedData);
 }
 
-std::string decryptString(const std::string& text) {
-  /* Decrypt a string using the user's login data.
+std::string decryptString(const std::string& text, DWORD flags) {
+  /*
    * Based on the API documentation for DPAPI CryptUnprotectData function
    * https://learn.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptunprotectdata
    * Adds base64 decoding to the input to match the encryptString
@@ -123,4 +122,24 @@ std::string decryptString(const std::string& text) {
   LocalFree(dataOut.pbData);
 
   return decryptedString;
+}
+
+std::string userEncryptString(const std::string& text) {
+  // Encrypt a string using the user's login data.
+  return encryptString(text, 0);
+}
+
+std::string systemEncryptString(const std::string& text) {
+  // Encrypt a string using the current computer as context.
+  return encryptString(text, CRYPTPROTECT_LOCAL_MACHINE);
+}
+
+std::string userDecryptString(const std::string& text) {
+  // Decrypt a string using the user's login data.
+  return decryptString(text, 0);
+}
+
+std::string systemDecryptString(const std::string& text) {
+  // Decrypt a string using the user's login data.
+  return decryptString(text, 0);
 }

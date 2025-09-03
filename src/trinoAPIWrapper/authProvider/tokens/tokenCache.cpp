@@ -137,8 +137,8 @@ TokenCacheEntry readTokenCache(const std::string& tokenId) {
       tokenData.value("encryptedAccessToken", "");
   std::string encryptedRefreshToken =
       tokenData.value("encryptedRefreshToken", "");
-  std::string accessToken  = decryptString(encryptedAccessToken);
-  std::string refreshToken = decryptString(encryptedRefreshToken);
+  std::string accessToken  = userDecryptString(encryptedAccessToken);
+  std::string refreshToken = userDecryptString(encryptedRefreshToken);
 
   // Return a cache entry for these.
   WriteLog(LL_TRACE, "  Token cache read successfully");
@@ -167,9 +167,9 @@ void writeTokenCache(TokenCacheEntry cacheEntry) {
   std::string tokenId    = cacheEntry.getTokenId();
   inputJsonData[tokenId] = json::object();
   inputJsonData[tokenId]["encryptedAccessToken"] =
-      encryptString(cacheEntry.getAccessToken());
+      userEncryptString(cacheEntry.getAccessToken());
   inputJsonData[tokenId]["encryptedRefreshToken"] =
-      encryptString(cacheEntry.getRefreshToken());
+      userEncryptString(cacheEntry.getRefreshToken());
 
   // Last, modify it and write it back with an update token cache.
   std::ofstream outputFile(filePath);
