@@ -151,6 +151,7 @@ add_executable(TestDriver
     "test/unit/util/cryptUtilsTest.cpp"
     "test/unit/util/dateAndTimeUtilsTest.cpp"
     "test/unit/util/stringTrimTest.cpp"
+    "test/unit/util/valuePtrHelperTest.cpp"
     "test/constants.cpp"
     "test/gtestTest.cpp"
 )

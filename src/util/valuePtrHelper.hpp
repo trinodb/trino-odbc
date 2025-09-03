@@ -23,8 +23,9 @@ void writeNullTermStringToPtr(SQLPOINTER InfoValuePtr,
   rsize_t nullcharPosition = length + 1;
   if (InfoValuePtr) {
     char* infoCharPtr = reinterpret_cast<char*>(InfoValuePtr);
+    // strcpy_s is documented to write a null terminator to the
+    // destination character array.
     strcpy_s(infoCharPtr, nullcharPosition, s.c_str());
-    infoCharPtr[nullcharPosition] = '\0';
   }
   if (StringLengthPtr) {
     *StringLengthPtr = static_cast<T>(length);
