@@ -43,9 +43,20 @@ DriverConfig readDriverConfigFromProfile(std::string dsn) {
   config.setClientId(readFromPrivateProfile(dsn, "clientId"));
   config.setOidcScope(readFromPrivateProfile(dsn, "oidcScope"));
 
-  // Handle the encrypted data
+  std::string secretEncryptionLevel =
+      readFromPrivateProfile(dsn, "secretEncryptionLevel");
   std::string encryptedClientSecret =
       readFromPrivateProfile(dsn, "encryptedClientSecret");
-  config.setClientSecret(decryptString(encryptedClientSecret));
+
+  // Handle the encrypted data
+  if (secretEncryptionLevel == "user") {
+    config.setClientSecret(userDecryptString(encryptedClientSecret));
+  } else if (secretEncryptionLevel == "system") {
+    config.setClientSecret(systemDecryptString(encryptedClientSecret));
+  } else {
+    throw std::runtime_error("Unknown secret encryption level: " +
+                             secretEncryptionLevel);
+  }
+
   return config;
 }

@@ -12,15 +12,46 @@
 #include "dsnConfigForm.hpp"
 #include "profileReader.hpp"
 
+bool isSystemDSN() {
+  /*
+  System DSN secrets need to be decryptable for anyone on the system.
+  User DSN secrets only need to be decryptable for the current user.
+  To tell them apart, we need to use SQLGetConfigMode.
+
+  There exists a ODBC_BOTH_DSN option, which we will treat the same
+  as a system DSN in terms of encryption/decryption of secrets.
+  */
+  UWORD configMode;
+  SQLGetConfigMode(&configMode);
+
+  bool isSystemDSN = configMode != ODBC_USER_DSN;
+  WriteLog(LL_INFO, "System DSN: " + std::to_string(isSystemDSN));
+  return isSystemDSN;
+}
+
 void writeToProfile(DriverConfig result,
                     std::string section,
                     std::string value) {
   std::string dsn = result.getDSN();
   if (section == "clientSecret") {
+    std::function<std::string(const std::string&)> encryptionFunc = nullptr;
+    std::string encryptionLevel;
+    if (isSystemDSN()) {
+      encryptionFunc  = systemEncryptString;
+      encryptionLevel = "system";
+    } else {
+      encryptionFunc  = userEncryptString;
+      encryptionLevel = "user";
+    }
     SQLWritePrivateProfileString(dsn.c_str(),
                                  "encryptedClientSecret",
-                                 encryptString(value).c_str(),
+                                 encryptionFunc(value).c_str(),
                                  "ODBC.INI");
+    SQLWritePrivateProfileString(dsn.c_str(),
+                                 "secretEncryptionLevel",
+                                 encryptionLevel.c_str(),
+                                 "ODBC.INI");
+
   } else {
     SQLWritePrivateProfileString(
         dsn.c_str(), section.c_str(), value.c_str(), "ODBC.INI");
