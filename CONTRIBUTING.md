@@ -25,22 +25,17 @@ how small, is welcome.
 
 # How to contribute
 
-Beginning a contribution is easy - just open an issue in this GitHub repo
-and tell us about the bug you found or the idea you have for what you
-would like to contribute. Both bug report and feature request issue
-templates are available to to get you started. After opening your
-issue, someone from the project team will respond to discuss your
-idea to help you make a plan for your contribution. In many cases,
-the plan will involve you submitting a pull request to the project
-containing the contribution you would like to make so we can review
-it and help you iterate and eventually merge it to be an official
-part of the project. By opening an issue and starting a discussion,
-we can make sure the maintenance team is ready for your pull request.
-If you need further guidance, just ask for more guidance in the
-issue you open. We're happy to help.
+## Contributor License Agreement ("CLA")
 
-Please note we have a [Code of Conduct](./CODE_OF_CONDUCT.md), please
-follow it in all your interactions with the project.
+In order to accept your pull request, we need you to [submit a CLA](https://github.com/trinodb/cla).
+
+## License
+
+By contributing to Trino, you agree that your contributions will be licensed under the [Apache License Version 2.0 (APLv2)](../LICENSE).
+
+## Contribution process
+
+See the suggested [process for contributions](https://trino.io/development/process.html).
 
 ## Getting started
 
