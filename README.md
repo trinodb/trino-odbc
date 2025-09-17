@@ -1,9 +1,9 @@
 # Project Overview: Trino ODBC Driver (Partial Implementation)
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)]()
-[![Latest Release](https://img.shields.io/github/v/release/corteva/trino-odbc.svg)]()
-[![Build Status](https://img.shields.io/github/actions/workflow/status/corteva/trino-odbc/make_release.yml.svg)]()
-[![Contributors](https://img.shields.io/github/contributors/corteva/trino-odbc.svg)]()
+[![Latest Release](https://img.shields.io/github/v/release/trinodb/trino-odbc.svg)]()
+[![Build Status](https://img.shields.io/github/actions/workflow/status/trinodb/trino-odbc/make_release.yml.svg)]()
+[![Contributors](https://img.shields.io/github/contributors/trinodb/trino-odbc.svg)]()
 [![Code Style](https://img.shields.io/badge/Code%20Style-Clang%20Format-blue.svg)]()
 
 ## Description
@@ -19,7 +19,7 @@ options for these tools on the Windows operating system within
 the Open Source Trino community.
 
 Note: this project is not sponsored by or affiliated with
-the Trino Software Foundation or Microsoft in any way.
+Microsoft in any way.
 
 ### :warning: Disclaimer: Scope and Limitations :warning:
 
@@ -289,3 +289,10 @@ a 32 or 64-bit driver.
 
 A treasure trove of API documentation for the ODBC API is available
 [here](https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/odbc-api-reference?view=sql-server-ver16).
+
+## Acknowledgements
+
+Initial development of this driver was supported by
+[Corteva Agriscience](https://www.corteva.com)
+and released as open source under the Apache License 2.0.
+We gratefully acknowledge their contribution to the Trino community.
