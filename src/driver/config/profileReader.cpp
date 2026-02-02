@@ -35,18 +35,25 @@ DriverConfig readDriverConfigFromProfile(std::string dsn) {
   // The driver config reads values assuming mostly camelCase names.
   DriverConfig config;
   config.setDSN(dsn);
-  config.setHostname(readFromPrivateProfile(dsn, "hostname"));
-  config.setPort(readFromPrivateProfile(dsn, "port"));
-  config.setLogLevel(readFromPrivateProfile(dsn, "loglevel"));
-  config.setAuthMethod(readFromPrivateProfile(dsn, "authmethod"));
-  config.setOidcDiscoveryUrl(readFromPrivateProfile(dsn, "oidcDiscoveryUrl"));
-  config.setClientId(readFromPrivateProfile(dsn, "clientId"));
-  config.setOidcScope(readFromPrivateProfile(dsn, "oidcScope"));
+  config.setHostname(readFromPrivateProfile(dsn, CONFIG_FIELD_HOSTNAME));
+  config.setPort(readFromPrivateProfile(dsn, CONFIG_FIELD_PORT));
+  config.setLogLevel(readFromPrivateProfile(dsn, CONFIG_FIELD_LOGLEVEL));
+  config.setAuthMethod(readFromPrivateProfile(dsn, CONFIG_FIELD_AUTHMETHOD));
+  config.setOidcDiscoveryUrl(readFromPrivateProfile(dsn, CONFIG_FIELD_OIDCDISCOVERYURL));
+  config.setClientId(readFromPrivateProfile(dsn, CONFIG_FIELD_CLIENTID));
+  config.setOidcScope(readFromPrivateProfile(dsn, CONFIG_FIELD_OIDCSCOPE));
+  config.setAuthEndpoint(
+      readFromPrivateProfile(dsn, CONFIG_FIELD_AUTHENDPOINT));
+  config.setPassword(readFromPrivateProfile(dsn, CONFIG_FIELD_PASSWORD));
+  config.setUsername(readFromPrivateProfile(dsn, CONFIG_FIELD_USERNAME));
+  config.setTokenEndpoint(
+      readFromPrivateProfile(dsn, CONFIG_FIELD_TOKENENDPOINT));
+  config.setOidcEndpointMethod(readFromPrivateProfile(dsn, CONFIG_FIELD_OIDCDISCOVERYMETHOD));
 
   std::string secretEncryptionLevel =
-      readFromPrivateProfile(dsn, "secretEncryptionLevel");
+      readFromPrivateProfile(dsn, CONFIG_FIELD_SECRETENCRYPTIONLEVEL);
   std::string encryptedClientSecret =
-      readFromPrivateProfile(dsn, "encryptedClientSecret");
+      readFromPrivateProfile(dsn, CONFIG_FIELD_ENCRYPTEDCLIENTSECRET);
 
   // Handle the encrypted data
   if (secretEncryptionLevel == "user") {
