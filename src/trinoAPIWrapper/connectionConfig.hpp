@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 
 #include "apiAuthMethod.hpp"
+#include "apiOidcMethod.hpp"
 #include "authProvider/authConfig.hpp"
 #include "environmentConfig.hpp"
 
@@ -18,8 +19,11 @@ class ConnectionConfig {
     std::string connectionName;
     std::string tokenEndpoint;
     std::string grantType;
+    std::string userName;
+    std::string password;
 
     ApiAuthMethod authMethod;
+    OidcEndpointMethod oidcMethod;
     std::unique_ptr<AuthConfig> authConfigPtr;
     std::vector<std::function<void(ConnectionConfig*)>> onDisconnectCallbacks;
 
@@ -29,16 +33,20 @@ class ConnectionConfig {
     CURL* curl;
 
   public:
-    ConnectionConfig(std::string hostname,
+    ConnectionConfig(const std::string& hostname,
                      unsigned short port,
                      ApiAuthMethod authMethod,
-                     std::string connectionName,
-                     std::string oidcDiscoveryUrl,
-                     std::string clientId,
-                     std::string clientSecret,
-                     std::string oidcScope,
-                     std::string grantType,
-                     std::string tokenEndpoint);
+                     const std::string& connectionName,
+                     const std::string& oidcDiscoveryUrl,
+                     const std::string& clientId,
+                     const std::string& clientSecret,
+                     const std::string& oidcScope,
+                     const std::string& grantType,
+                     const std::string& tokenEndpoint,
+                     const std::string& authEndpoint,
+                     const std::string& userName,
+                     const std::string& password,
+                     OidcEndpointMethod oidcMethod);
 
     ~ConnectionConfig();
     std::string const getHostname();

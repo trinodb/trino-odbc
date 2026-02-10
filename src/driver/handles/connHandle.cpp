@@ -40,7 +40,11 @@ void Connection::configure(DriverConfig config) {
                                                 config.getClientSecret(),
                                                 config.getOidcScope(),
                                                 config.getGrantType(),
-                                                config.getTokenEndpoint());
+                                                config.getTokenEndpoint(),
+                                                config.getAuthEndpoint(),
+                                                config.getUsername(),
+                                                config.getPassword(),
+                                                config.getOidcEndpointMethodEnum());
 }
 
 void Connection::setError(ErrorInfo errorInfo) {
