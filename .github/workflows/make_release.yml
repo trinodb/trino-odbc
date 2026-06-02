@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get CMake
         uses: lukka/get-cmake@latest
@@ -42,7 +42,7 @@ jobs:
           cmake --build --preset x64-release
 
       - name: Add dotnet tool cli
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
 
       - name: Add WiX dotnet package
         run: |
@@ -63,7 +63,7 @@ jobs:
           .\install\build_x64_installer.ps1
 
       - name: Upload installers
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: installers
           if-no-files-found: error
@@ -83,19 +83,19 @@ jobs:
 
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: installers
           path: ./installers
 
       - name: Create Release
-        uses: marvinpinto/action-automatic-releases@latest
+        uses: softprops/action-gh-release@v3
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
           prerelease: false
-          automatic_release_tag: ${{ github.ref_name }}
-          title: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           files: |
             installers/TrinoODBC_x86.msi
             installers/TrinoODBC_x64.msi

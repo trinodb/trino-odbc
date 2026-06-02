@@ -8,6 +8,7 @@ on:
       - '**/*.md'
       - '**/*.yaml'
       - '**/CMakeLists.txt'
+      - '.github/workflows/*.yml'
 
 permissions:
   contents: read
@@ -19,7 +20,7 @@ jobs:
     steps:
       # Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # Depth 0 gets all history for all branches. This
           # enables the clang-format check to compare this PR
