@@ -8,6 +8,7 @@
 #include "TrinoOdbcErrorHandler.hpp"
 #include "columnDescription.hpp"
 #include "connectionConfig.hpp"
+#include "TrinoOdbcErrorHandler.hpp"
 
 using json = nlohmann::json;
 
