@@ -33,6 +33,11 @@ void TokenCacheAuthProviderBase::refresh(
   std::string accessToken =
       this->obtainAccessToken(curl, responseData, responseHeaderData);
 
+  if (accessToken.empty()) {
+    throw std::runtime_error(
+        "Failed to obtain an access token from the identity provider");
+  }
+
   // Cache the token
   this->cacheToken(accessToken);
 

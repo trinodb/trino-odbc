@@ -3,6 +3,7 @@
 #include "../../../util/delimKvpHelper.hpp"
 #include "../../../util/stringSplitAndTrim.hpp"
 #include "../../../util/timeUtils.hpp"
+#include "../../../util/writeLog.hpp"
 
 json parseAccessToken(std::string& accessToken) {
   // NOTE: There is no need to validate the token here, because it's
@@ -10,6 +11,10 @@ json parseAccessToken(std::string& accessToken) {
   // to the identity provider that includes validating the token signature.
   // If this driver got a token from the Trino controller, we can just use it.
   std::vector<std::string> jwtComponents = stringSplitAndTrim(accessToken, '.');
+  if (jwtComponents.size() < 2) {
+    WriteLog(LL_ERROR, "  ERROR: Access token is not a well-formed JWT");
+    return json(json::value_t::object);
+  }
   std::string jwtPayloadEncoded          = jwtComponents[1];
   std::string jwtPayloadDecoded          = fromBase64url(jwtPayloadEncoded);
   json jwtPayload                        = json::parse(jwtPayloadDecoded);

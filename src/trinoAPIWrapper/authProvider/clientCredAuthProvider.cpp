@@ -73,6 +73,7 @@ std::string refreshClientCredAuth(ClientCredAuthParams& params) {
   oss << "grant_type=" << encodedGrantType;
   oss << "&client_id=" << encodedClientId;
   oss << "&client_secret=" << encodedClientSecret;
+  oss << "&scope=" << encodedScope;
   std::string tokenPost = oss.str();
 
   // POST the creds and required data to exchange it for a token
