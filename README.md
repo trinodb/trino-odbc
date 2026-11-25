@@ -1,4 +1,4 @@
-# Project Overview: Trino ODBC Driver (Partial Implementation)
+# Project Overview: Trino ODBC Driver (Partial Implementation) Testar e depurar na City
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)]()
 [![Latest Release](https://img.shields.io/github/v/release/trinodb/trino-odbc.svg)]()
