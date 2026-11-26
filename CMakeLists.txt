@@ -32,6 +32,7 @@ add_library(TrinoODBC SHARED
             "src/trinoAPIWrapper/authProvider/clientCredAuthProvider.cpp"
             "src/trinoAPIWrapper/authProvider/externalAuthProvider.cpp"
             "src/trinoAPIWrapper/authProvider/noAuthProvider.cpp"
+            "src/trinoAPIWrapper/authProvider/basicAuthProvider.cpp"
             "src/trinoAPIWrapper/authProvider/tokenCacheAuthProviderBase.cpp"
             "src/trinoAPIWrapper/authProvider/deviceFlowAuthProvider.cpp"
             "src/trinoAPIWrapper/trinoQuery.cpp"

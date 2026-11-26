@@ -27,6 +27,8 @@ class DriverConfig {
     std::string oidcScope        = "";
     std::string tokenEndpoint    = "";
     std::string grantType        = "";
+    std::string user             = "";
+    std::string password         = "";
 
     // Metadata describing the status of this config object.
     bool isSaved = false;
@@ -76,6 +78,12 @@ class DriverConfig {
 
     std::string getGrantType();
     void setGrantType(std::string grantType);
+
+    std::string getUser();
+    void setUser(std::string user);
+
+    std::string getPassword();
+    void setPassword(std::string password);
 
     std::string serialize();
     static DriverConfig deserialize(const std::string& jsonStr);

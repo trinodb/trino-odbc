@@ -10,11 +10,12 @@ class NoAuthAuthConfig : public AuthConfig {
   public:
     NoAuthAuthConfig(std::string hostname,
                      unsigned short port,
-                     std::string connectionName)
+                     std::string connectionName,
+                     std::string user)
         : AuthConfig(hostname, port, connectionName) {
-      // TODO: find a way to let the DSN config set an explicit
-      //       username for this instead of "TestUser".
-      this->headers.insert({"X-Trino-User", "TestUser"});
+      // Use the UID from the connection string when given. Fall back to
+      // the historical default of "TestUser" otherwise.
+      this->headers.insert({"X-Trino-User", user.empty() ? "TestUser" : user});
     }
 
     bool const isExpired() override {
@@ -31,6 +32,8 @@ class NoAuthAuthConfig : public AuthConfig {
 
 std::unique_ptr<AuthConfig> getNoAuthConfigPtr(std::string hostname,
                                                unsigned short port,
-                                               std::string connectionName) {
-  return std::make_unique<NoAuthAuthConfig>(hostname, port, connectionName);
+                                               std::string connectionName,
+                                               std::string user) {
+  return std::make_unique<NoAuthAuthConfig>(
+      hostname, port, connectionName, user);
 }

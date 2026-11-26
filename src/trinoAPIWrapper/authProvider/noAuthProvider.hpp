@@ -7,4 +7,5 @@
 
 std::unique_ptr<AuthConfig> getNoAuthConfigPtr(std::string hostname,
                                                unsigned short port,
-                                               std::string connectionName);
+                                               std::string connectionName,
+                                               std::string user = "");

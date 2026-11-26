@@ -39,7 +39,9 @@ class ConnectionConfig {
                      std::string clientSecret,
                      std::string oidcScope,
                      std::string grantType,
-                     std::string tokenEndpoint);
+                     std::string tokenEndpoint,
+                     std::string user     = "",
+                     std::string password = "");
 
     ~ConnectionConfig();
     std::string const getHostname();

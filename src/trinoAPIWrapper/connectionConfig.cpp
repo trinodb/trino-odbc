@@ -4,6 +4,7 @@
 #include "../util/callbackHelper.hpp"
 #include "../util/stringTrim.hpp"
 #include "../util/writeLog.hpp"
+#include "authProvider/basicAuthProvider.hpp"
 #include "authProvider/clientCredAuthProvider.hpp"
 #include "authProvider/deviceFlowAuthProvider.hpp"
 #include "authProvider/externalAuthProvider.hpp"
@@ -58,7 +59,9 @@ ConnectionConfig::ConnectionConfig(std::string hostname,
                                    std::string clientSecret,
                                    std::string oidcScope,
                                    std::string grantType,
-                                   std::string tokenEndpoint) {
+                                   std::string tokenEndpoint,
+                                   std::string user,
+                                   std::string password) {
 
   this->hostname       = hostname;
   this->port           = port;
@@ -75,7 +78,8 @@ ConnectionConfig::ConnectionConfig(std::string hostname,
 
   switch (authMethod) {
     case AM_NO_AUTH: {
-      this->authConfigPtr = getNoAuthConfigPtr(hostname, port, connectionName);
+      this->authConfigPtr =
+          getNoAuthConfigPtr(hostname, port, connectionName, user);
       break;
     }
     case AM_EXTERNAL_AUTH: {
@@ -93,6 +97,11 @@ ConnectionConfig::ConnectionConfig(std::string hostname,
                                                       oidcScope,
                                                       grantType,
                                                       tokenEndpoint);
+      break;
+    }
+    case AM_BASIC_AUTH: {
+      this->authConfigPtr = getBasicAuthConfigPtr(
+          hostname, port, connectionName, user, password);
       break;
     }
     case AM_DEVICE_FLOW: {

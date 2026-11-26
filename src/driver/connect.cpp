@@ -24,13 +24,34 @@ SQLRETURN SQL_API SQLConnect(SQLHDBC ConnectionHandle,
   Connection* connection = reinterpret_cast<Connection*>(ConnectionHandle);
   DriverConfig config    = readDriverConfigFromProfile(dsn);
 
+  // SQLConnect passes the user name and password as separate arguments.
+  if (UserNameChars != nullptr) {
+    std::string user = stringFromChar(UserNameChars, NameLength2);
+    if (!user.empty()) {
+      config.setUser(user);
+    }
+  }
+  if (AuthenticationChars != nullptr) {
+    std::string password = stringFromChar(AuthenticationChars, NameLength3);
+    if (!password.empty()) {
+      config.setPassword(password);
+    }
+  }
+
   // It's kind of unfortunate that we can't set the log level of the driver
   // until we've read the DSN in some way.
   WriteLog(LL_TRACE, "  Setting Log Level");
   setLogLevel(config.getLogLevelEnum());
 
   WriteLog(LL_TRACE, "  Configuring connection");
-  connection->configure(config);
+  try {
+    connection->configure(config);
+  } catch (std::exception& e) {
+    WriteLog(LL_ERROR, "  Error from SQLConnect: " + std::string(e.what()));
+    connection->setError(ErrorInfo(e.what(), "HY000"));
+    return SQL_ERROR;
+  }
+  connection->connected = true;
 
   return SQL_SUCCESS;
 }

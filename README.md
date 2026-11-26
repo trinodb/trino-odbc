@@ -74,6 +74,19 @@ use the driver to read data from Trino using Client Credential Auth or
 External Authentication.
 
 
+### Basic Auth (user name and password)
+
+This fork adds a "Basic Auth" method for Trino servers that use the PASSWORD
+authenticator (LDAP, password file). The credentials go in the connection
+string, using the standard ODBC keys, and are never stored in the DSN or the log:
+
+```
+Driver={TrinoODBC};hostname=https://trino.example.com;port=8443;authmethod=Basic Auth;UID=myuser;PWD=mypassword
+```
+
+The hostname must start with `https://`: Trino refuses passwords over plain HTTP.
+`UID` alone also works with "No Auth", replacing the default `TestUser` user name.
+
 ### Identifying Specific Limitations
 
 The best way to find what if anything is missing is to give it a try!

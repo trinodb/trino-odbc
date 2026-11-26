@@ -12,6 +12,17 @@
 #include "../util/stringFromChar.hpp"
 #include "../util/writeLog.hpp"
 
+// Return a copy of the KVPs that is safe to write to the log.
+static std::map<std::string, std::string>
+redactSecrets(std::map<std::string, std::string> kvps) {
+  for (const char* key : {"pwd", "password", "clientsecret", "clientSecret"}) {
+    if (kvps.count(key)) {
+      kvps[key] = "********";
+    }
+  }
+  return kvps;
+}
+
 SQLRETURN SQL_API SQLDriverConnect(SQLHDBC ConnectionHandle,
                                    SQLHWND Windowhandle,
                                    _In_reads_(InConnectionChars)
@@ -33,11 +44,13 @@ SQLRETURN SQL_API SQLDriverConnect(SQLHDBC ConnectionHandle,
   WriteLog(LL_TRACE, "  Reading input connection string");
   std::string inputConnStr = stringFromChar(InConnectionChars, StringLength1);
 
-  WriteLog(LL_TRACE, "  Input connection string was: " + inputConnStr);
-
   WriteLog(LL_TRACE, "  Parsing input connection string");
   std::map<std::string, std::string> kvps =
       parseKVPsFromSemicolonDelimStr(inputConnStr);
+
+  // Do not log the raw connection string: it may contain a password.
+  WriteLog(LL_TRACE, "  Input connection string KVPs were:");
+  WriteLog(LL_TRACE, redactSecrets(kvps));
 
   if (kvps.count("dsn")) {
     WriteLog(LL_TRACE, "  An explicit DSN was provided to SQLDriverConnect");
@@ -57,7 +70,7 @@ SQLRETURN SQL_API SQLDriverConnect(SQLHDBC ConnectionHandle,
       }
     }
     WriteLog(LL_TRACE, "The final connection config was as follows");
-    WriteLog(LL_TRACE, kvps);
+    WriteLog(LL_TRACE, redactSecrets(kvps));
   } else {
     WriteLog(LL_TRACE,
              "  An explicit DSN was not provided to SQLDriverConnect");

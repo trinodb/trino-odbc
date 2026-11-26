@@ -28,22 +28,28 @@ std::map<std::string, LogLevel> LOG_NAME_TO_LOG_LEVEL = {
 };
 
 std::vector<std::string> AUTH_METHOD_NAMES = {
-    "No Auth", "External Auth", "OIDC Client Cred Auth", "Device Flow"};
+    "No Auth", "External Auth", "OIDC Client Cred Auth", "Device Flow", "Basic Auth"};
 
 std::vector<ApiAuthMethod> AUTH_METHOD_VALUES = {
-    AM_NO_AUTH, AM_EXTERNAL_AUTH, AM_CLIENT_CRED_AUTH, AM_DEVICE_FLOW};
+    AM_NO_AUTH,
+    AM_EXTERNAL_AUTH,
+    AM_CLIENT_CRED_AUTH,
+    AM_DEVICE_FLOW,
+    AM_BASIC_AUTH};
 
 std::map<ApiAuthMethod, std::string> AUTH_METHOD_TO_AUTH_NAME = {
     std::make_pair(AM_NO_AUTH, "No Auth"),
     std::make_pair(AM_EXTERNAL_AUTH, "External Auth"),
     std::make_pair(AM_CLIENT_CRED_AUTH, "OIDC Client Cred Auth"),
-    std::make_pair(AM_DEVICE_FLOW, "Device Flow")};
+    std::make_pair(AM_DEVICE_FLOW, "Device Flow"),
+    std::make_pair(AM_BASIC_AUTH, "Basic Auth")};
 
 std::map<std::string, ApiAuthMethod> AUTH_NAME_TO_AUTH_METHOD = {
     std::make_pair("No Auth", AM_NO_AUTH),
     std::make_pair("External Auth", AM_EXTERNAL_AUTH),
     std::make_pair("Oidc Client Cred Auth", AM_CLIENT_CRED_AUTH),
-    std::make_pair("Device Flow", AM_DEVICE_FLOW)};
+    std::make_pair("Device Flow", AM_DEVICE_FLOW),
+    std::make_pair("Basic Auth", AM_BASIC_AUTH)};
 
 
 // All default values - do not miss any!
@@ -58,6 +64,23 @@ std::map<std::string, std::string> DRIVER_CONFIG_DEFAULT_VALUES = {
     std::make_pair("oidcScope", ""),
     std::make_pair("secretEncryptionLevel", "user"),
 };
+
+// User - sent as X-Trino-User. Also used as the Basic Auth user name.
+std::string DriverConfig::getUser() {
+  return this->user;
+}
+void DriverConfig::setUser(std::string user) {
+  this->user = user;
+}
+
+// Password - only used by Basic Auth. Never persisted to the DSN and
+// never written to the logs.
+std::string DriverConfig::getPassword() {
+  return this->password;
+}
+void DriverConfig::setPassword(std::string password) {
+  this->password = password;
+}
 
 // DSN
 std::string DriverConfig::getDSN() {
@@ -239,6 +262,20 @@ DriverConfig driverConfigFromKVPs(std::map<std::string, std::string> kvps) {
   if (kvps.count("tokenendpoint")) {
     config.setTokenEndpoint(kvps.at("tokenendpoint"));
   }
+  // Standard ODBC keys are UID/PWD. "user"/"password" are accepted too.
+  // UID/PWD take precedence when both forms are present.
+  if (kvps.count("user")) {
+    config.setUser(kvps.at("user"));
+  }
+  if (kvps.count("uid")) {
+    config.setUser(kvps.at("uid"));
+  }
+  if (kvps.count("password")) {
+    config.setPassword(kvps.at("password"));
+  }
+  if (kvps.count("pwd")) {
+    config.setPassword(kvps.at("pwd"));
+  }
 
   return config;
 }
@@ -277,6 +314,11 @@ std::map<std::string, std::string> driverConfigToKVPs(DriverConfig config) {
   if (!config.getOidcScope().empty()) {
     kvps["oidcScope"] = config.getOidcScope();
   }
+  if (!config.getUser().empty()) {
+    kvps["uid"] = config.getUser();
+  }
+  // The password is intentionally never emitted here: these KVPs get
+  // logged and may be persisted.
 
   return kvps;
 }
