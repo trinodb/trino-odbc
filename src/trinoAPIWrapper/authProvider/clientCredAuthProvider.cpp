@@ -73,6 +73,11 @@ std::string refreshClientCredAuth(ClientCredAuthParams& params) {
   oss << "grant_type=" << encodedGrantType;
   oss << "&client_id=" << encodedClientId;
   oss << "&client_secret=" << encodedClientSecret;
+  if (!scope.empty()) {
+    // Some IdPs (e.g. Entra ID) require scope to issue a usable token, while
+    // others reject an empty scope, so only send it when configured.
+    oss << "&scope=" << encodedScope;
+  }
   std::string tokenPost = oss.str();
 
   // POST the creds and required data to exchange it for a token
